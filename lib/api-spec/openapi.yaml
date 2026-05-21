@@ -3,13 +3,21 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Hookah Club subscription management API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: subscriptions
+    description: Subscription plans
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
@@ -24,6 +32,201 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/telegram:
+    post:
+      operationId: authTelegram
+      tags: [auth]
+      summary: Authenticate via Telegram
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TelegramAuthInput"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+
+  /subscriptions/plans:
+    get:
+      operationId: getSubscriptionPlans
+      tags: [subscriptions]
+      summary: Get all subscription plans
+      responses:
+        "200":
+          description: List of plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionPlan"
+
+  /subscriptions/my:
+    get:
+      operationId: getMySubscription
+      tags: [subscriptions]
+      summary: Get my active subscription
+      responses:
+        "200":
+          description: Current subscription with remaining usage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDetail"
+        "404":
+          description: No active subscription
+
+  /admin/users:
+    get:
+      operationId: adminGetUsers
+      tags: [admin]
+      summary: Get all users (admin)
+      responses:
+        "200":
+          description: List of users with subscriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUserView"
+        "403":
+          description: Forbidden
+
+  /admin/users/{userId}:
+    get:
+      operationId: adminGetUser
+      tags: [admin]
+      summary: Get user detail (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserView"
+        "404":
+          description: Not found
+
+  /admin/users/{userId}/subscription:
+    post:
+      operationId: adminActivateSubscription
+      tags: [admin]
+      summary: Activate subscription for user (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionActivateInput"
+      responses:
+        "200":
+          description: Subscription activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDetail"
+        "403":
+          description: Forbidden
+    patch:
+      operationId: adminUpdateSubscription
+      tags: [admin]
+      summary: Update subscription usage (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionUsageUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDetail"
+        "403":
+          description: Forbidden
+
+  /admin/users/{userId}/use-hookah:
+    post:
+      operationId: adminUseHookah
+      tags: [admin]
+      summary: Redeem a hookah for user (admin, via QR scan)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Hookah redeemed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDetail"
+        "400":
+          description: No hookahs remaining
+        "403":
+          description: Forbidden
+
+  /admin/stats:
+    get:
+      operationId: adminGetStats
+      tags: [admin]
+      summary: Get overall stats (admin)
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+        "403":
+          description: Forbidden
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +237,165 @@ components:
       required:
         - status
 
+    TelegramAuthInput:
+      type: object
+      required: [telegramId, firstName]
+      properties:
+        telegramId:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: ["string", "null"]
+        username:
+          type: ["string", "null"]
+        photoUrl:
+          type: ["string", "null"]
+
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+
+    User:
+      type: object
+      required: [id, telegramId, firstName, role, createdAt]
+      properties:
+        id:
+          type: integer
+        telegramId:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: ["string", "null"]
+        username:
+          type: ["string", "null"]
+        photoUrl:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [user, staff, admin]
+        createdAt:
+          type: string
+
+    SubscriptionPlan:
+      type: object
+      required: [id, nameRu, nameRs, level, hookahCount, priceRsd, pricePerHookah, bonusHookahFruit, bonusElectric, bonusHookahCheap]
+      properties:
+        id:
+          type: integer
+        nameRu:
+          type: string
+        nameRs:
+          type: string
+        level:
+          type: integer
+        hookahCount:
+          type: integer
+        priceRsd:
+          type: integer
+        pricePerHookah:
+          type: integer
+        bonusHookahFruit:
+          type: integer
+        bonusElectric:
+          type: integer
+        bonusHookahCheap:
+          type: integer
+
+    UserSubscriptionDetail:
+      type: object
+      required: [id, userId, planId, plan, hookahsRemaining, fruitHookahsRemaining, electricAvailable, cheapHookahAvailable, activatedAt, expiresAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        planId:
+          type: integer
+        plan:
+          $ref: "#/components/schemas/SubscriptionPlan"
+        hookahsRemaining:
+          type: integer
+        fruitHookahsRemaining:
+          type: integer
+        electricAvailable:
+          type: boolean
+        cheapHookahAvailable:
+          type: boolean
+        activatedAt:
+          type: string
+        expiresAt:
+          type: ["string", "null"]
+        note:
+          type: ["string", "null"]
+
+    SubscriptionActivateInput:
+      type: object
+      required: [planId]
+      properties:
+        planId:
+          type: integer
+        note:
+          type: ["string", "null"]
+
+    SubscriptionUsageUpdate:
+      type: object
+      properties:
+        hookahsRemaining:
+          type: ["integer", "null"]
+        fruitHookahsRemaining:
+          type: ["integer", "null"]
+        electricAvailable:
+          type: ["boolean", "null"]
+        cheapHookahAvailable:
+          type: ["boolean", "null"]
+        note:
+          type: ["string", "null"]
+
+    AdminUserView:
+      type: object
+      required: [id, telegramId, firstName, role, createdAt]
+      properties:
+        id:
+          type: integer
+        telegramId:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: ["string", "null"]
+        username:
+          type: ["string", "null"]
+        role:
+          type: string
+        createdAt:
+          type: string
+        subscription:
+          $ref: "#/components/schemas/UserSubscriptionDetail"
+
+    AdminStats:
+      type: object
+      required: [totalUsers, activeSubscriptions, totalHookahsUsed]
+      properties:
+        totalUsers:
+          type: integer
+        activeSubscriptions:
+          type: integer
+        totalHookahsUsed:
+          type: integer
+        subscriptionsByPlan:
+          type: array
+          items:
+            type: object
+            required: [planName, count]
+            properties:
+              planName:
+                type: string
+              count:
+                type: integer
