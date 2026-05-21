@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, subscriptionPlansTable, userSubscriptionsTable } from "@workspace/db";
-import { eq, and, count, sum } from "drizzle-orm";
+import { db, usersTable, subscriptionPlansTable, userSubscriptionsTable, actionLogsTable } from "@workspace/db";
+import { eq, and, count, sum, desc } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../lib/auth";
 import {
   AdminGetUsersResponse,
@@ -11,10 +11,17 @@ import {
   AdminUpdateSubscriptionBody,
   AdminUpdateSubscriptionParams,
   AdminUseHookahParams,
+  AdminUseFruitParams,
+  AdminUseCheapParams,
+  AdminUseElectricParams,
+  AdminGetUserLogsParams,
+  AdminGetUserLogsResponse,
   AdminGetStatsResponse,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+type AuthedReq = typeof import("express").request & { user: typeof usersTable.$inferSelect };
 
 function buildSubDetail(sub: typeof userSubscriptionsTable.$inferSelect, plan: typeof subscriptionPlansTable.$inferSelect) {
   return {
@@ -32,6 +39,24 @@ function buildSubDetail(sub: typeof userSubscriptionsTable.$inferSelect, plan: t
   };
 }
 
+async function logAction(staffId: number, guestId: number, action: string, description: string) {
+  await db.insert(actionLogsTable).values({ staffId, guestId, action, description });
+}
+
+function buildUserView(user: typeof usersTable.$inferSelect, row?: { user_subscriptions: typeof userSubscriptionsTable.$inferSelect; subscription_plans: typeof subscriptionPlansTable.$inferSelect | null } | null) {
+  return {
+    id: user.id,
+    telegramId: user.telegramId,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    username: user.username,
+    role: user.role,
+    note: user.note ?? null,
+    createdAt: user.createdAt.toISOString(),
+    subscription: row ? buildSubDetail(row.user_subscriptions, row.subscription_plans!) : undefined,
+  };
+}
+
 router.get("/admin/users", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const users = await db.select().from(usersTable).orderBy(usersTable.createdAt);
 
@@ -42,18 +67,7 @@ router.get("/admin/users", requireAuth, requireAdmin, async (req, res): Promise<
         .from(userSubscriptionsTable)
         .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
         .where(and(eq(userSubscriptionsTable.userId, user.id), eq(userSubscriptionsTable.active, true)));
-
-      const row = rows[0];
-      return {
-        id: user.id,
-        telegramId: user.telegramId,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
-        role: user.role,
-        createdAt: user.createdAt.toISOString(),
-        subscription: row ? buildSubDetail(row.user_subscriptions, row.subscription_plans!) : undefined,
-      };
+      return buildUserView(user, rows[0]);
     })
   );
 
@@ -62,16 +76,10 @@ router.get("/admin/users", requireAuth, requireAdmin, async (req, res): Promise<
 
 router.get("/admin/users/:userId", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const params = AdminGetUserParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, params.data.userId));
-  if (!user) {
-    res.status(404).json({ error: "User not found" });
-    return;
-  }
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
 
   const rows = await db
     .select()
@@ -79,38 +87,18 @@ router.get("/admin/users/:userId", requireAuth, requireAdmin, async (req, res): 
     .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
     .where(and(eq(userSubscriptionsTable.userId, user.id), eq(userSubscriptionsTable.active, true)));
 
-  const row = rows[0];
-
-  res.json(AdminGetUserResponse.parse({
-    id: user.id,
-    telegramId: user.telegramId,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    username: user.username,
-    role: user.role,
-    createdAt: user.createdAt.toISOString(),
-    subscription: row ? buildSubDetail(row.user_subscriptions, row.subscription_plans!) : undefined,
-  }));
+  res.json(AdminGetUserResponse.parse(buildUserView(user, rows[0])));
 });
 
 router.post("/admin/users/:userId/subscription", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const params = AdminActivateSubscriptionParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const body = AdminActivateSubscriptionBody.safeParse(req.body);
-  if (!body.success) {
-    res.status(400).json({ error: body.error.message });
-    return;
-  }
+  if (!body.success) { res.status(400).json({ error: body.error.message }); return; }
 
   const [plan] = await db.select().from(subscriptionPlansTable).where(eq(subscriptionPlansTable.id, body.data.planId));
-  if (!plan) {
-    res.status(404).json({ error: "Plan not found" });
-    return;
-  }
+  if (!plan) { res.status(404).json({ error: "Plan not found" }); return; }
 
   await db
     .update(userSubscriptionsTable)
@@ -131,21 +119,18 @@ router.post("/admin/users/:userId/subscription", requireAuth, requireAdmin, asyn
     })
     .returning();
 
-  res.json(AdminActivateSubscriptionBody.parse(buildSubDetail(sub, plan)));
+  const staff = (req as unknown as AuthedReq).user;
+  await logAction(staff.id, params.data.userId, "activate", `Активирована подписка: ${plan.nameRu}`);
+
+  res.json(buildSubDetail(sub, plan));
 });
 
 router.patch("/admin/users/:userId/subscription", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const params = AdminUpdateSubscriptionParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const body = AdminUpdateSubscriptionBody.safeParse(req.body);
-  if (!body.success) {
-    res.status(400).json({ error: body.error.message });
-    return;
-  }
+  if (!body.success) { res.status(400).json({ error: body.error.message }); return; }
 
   const rows = await db
     .select()
@@ -153,10 +138,7 @@ router.patch("/admin/users/:userId/subscription", requireAuth, requireAdmin, asy
     .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
     .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)));
 
-  if (rows.length === 0) {
-    res.status(404).json({ error: "No active subscription" });
-    return;
-  }
+  if (rows.length === 0) { res.status(404).json({ error: "No active subscription" }); return; }
 
   const updateData: Partial<typeof userSubscriptionsTable.$inferInsert> = {};
   if (body.data.hookahsRemaining != null) updateData.hookahsRemaining = body.data.hookahsRemaining;
@@ -171,16 +153,16 @@ router.patch("/admin/users/:userId/subscription", requireAuth, requireAdmin, asy
     .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)))
     .returning();
 
+  const staff = (req as unknown as AuthedReq).user;
+  await logAction(staff.id, params.data.userId, "manual_adjust", "Ручная корректировка баланса");
+
   const row = rows[0];
   res.json(buildSubDetail(updated, row.subscription_plans!));
 });
 
 router.post("/admin/users/:userId/use-hookah", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const params = AdminUseHookahParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const rows = await db
     .select()
@@ -188,29 +170,133 @@ router.post("/admin/users/:userId/use-hookah", requireAuth, requireAdmin, async 
     .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
     .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)));
 
-  if (rows.length === 0) {
-    res.status(404).json({ error: "No active subscription" });
-    return;
-  }
+  if (rows.length === 0) { res.status(404).json({ error: "No active subscription" }); return; }
 
   const row = rows[0];
   const sub = row.user_subscriptions;
 
-  if (sub.hookahsRemaining <= 0) {
-    res.status(400).json({ error: "No hookahs remaining" });
-    return;
-  }
+  if (sub.hookahsRemaining <= 0) { res.status(400).json({ error: "No hookahs remaining" }); return; }
 
   const [updated] = await db
     .update(userSubscriptionsTable)
-    .set({
-      hookahsRemaining: sub.hookahsRemaining - 1,
-      totalHookahsUsed: sub.totalHookahsUsed + 1,
-    })
+    .set({ hookahsRemaining: sub.hookahsRemaining - 1, totalHookahsUsed: sub.totalHookahsUsed + 1 })
     .where(eq(userSubscriptionsTable.id, sub.id))
     .returning();
 
+  const staff = (req as unknown as AuthedReq).user;
+  await logAction(staff.id, params.data.userId, "hookah", `Кальян списан. Осталось: ${updated.hookahsRemaining}`);
+
   res.json(buildSubDetail(updated, row.subscription_plans!));
+});
+
+router.post("/admin/users/:userId/use-fruit", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const params = AdminUseFruitParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const rows = await db
+    .select()
+    .from(userSubscriptionsTable)
+    .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
+    .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)));
+
+  if (rows.length === 0) { res.status(404).json({ error: "No active subscription" }); return; }
+
+  const row = rows[0];
+  const sub = row.user_subscriptions;
+
+  if (sub.fruitHookahsRemaining <= 0) { res.status(400).json({ error: "No fruit hookahs remaining" }); return; }
+
+  const [updated] = await db
+    .update(userSubscriptionsTable)
+    .set({ fruitHookahsRemaining: sub.fruitHookahsRemaining - 1 })
+    .where(eq(userSubscriptionsTable.id, sub.id))
+    .returning();
+
+  const staff = (req as unknown as AuthedReq).user;
+  await logAction(staff.id, params.data.userId, "fruit", `Фрукт списан. Осталось: ${updated.fruitHookahsRemaining}`);
+
+  res.json(buildSubDetail(updated, row.subscription_plans!));
+});
+
+router.post("/admin/users/:userId/use-cheap", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const params = AdminUseCheapParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const rows = await db
+    .select()
+    .from(userSubscriptionsTable)
+    .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
+    .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)));
+
+  if (rows.length === 0) { res.status(404).json({ error: "No active subscription" }); return; }
+
+  const row = rows[0];
+  const sub = row.user_subscriptions;
+
+  if (!sub.cheapHookahAvailable) { res.status(400).json({ error: "Not available" }); return; }
+
+  const [updated] = await db
+    .update(userSubscriptionsTable)
+    .set({ cheapHookahAvailable: false })
+    .where(eq(userSubscriptionsTable.id, sub.id))
+    .returning();
+
+  const staff = (req as unknown as AuthedReq).user;
+  await logAction(staff.id, params.data.userId, "cheap", "Кальян за 350 RSD списан");
+
+  res.json(buildSubDetail(updated, row.subscription_plans!));
+});
+
+router.post("/admin/users/:userId/use-electric", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const params = AdminUseElectricParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const rows = await db
+    .select()
+    .from(userSubscriptionsTable)
+    .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
+    .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)));
+
+  if (rows.length === 0) { res.status(404).json({ error: "No active subscription" }); return; }
+
+  const row = rows[0];
+  const sub = row.user_subscriptions;
+
+  if (!sub.electricAvailable) { res.status(400).json({ error: "Not available" }); return; }
+
+  const [updated] = await db
+    .update(userSubscriptionsTable)
+    .set({ electricAvailable: false })
+    .where(eq(userSubscriptionsTable.id, sub.id))
+    .returning();
+
+  const staff = (req as unknown as AuthedReq).user;
+  await logAction(staff.id, params.data.userId, "electric", "Электронная чаша списана");
+
+  res.json(buildSubDetail(updated, row.subscription_plans!));
+});
+
+router.get("/admin/users/:userId/logs", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const params = AdminGetUserLogsParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const logs = await db
+    .select()
+    .from(actionLogsTable)
+    .where(eq(actionLogsTable.guestId, params.data.userId))
+    .orderBy(desc(actionLogsTable.createdAt))
+    .limit(50);
+
+  res.json(AdminGetUserLogsResponse.parse(
+    logs.map((l) => ({
+      id: l.id,
+      staffId: l.staffId,
+      guestId: l.guestId,
+      action: l.action,
+      description: l.description,
+      createdAt: l.createdAt.toISOString(),
+    }))
+  ));
 });
 
 router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<void> => {

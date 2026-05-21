@@ -40,12 +40,19 @@ export interface User {
   /** @nullable */
   photoUrl?: string | null;
   role: UserRole;
+  /** @nullable */
+  note?: string | null;
   createdAt: string;
 }
 
 export interface AuthResponse {
   user: User;
   token: string;
+}
+
+export interface UpdateNoteInput {
+  /** @nullable */
+  note: string | null;
 }
 
 export interface SubscriptionPlan {
@@ -105,8 +112,19 @@ export interface AdminUserView {
   /** @nullable */
   username?: string | null;
   role: string;
+  /** @nullable */
+  note?: string | null;
   createdAt: string;
   subscription?: UserSubscriptionDetail;
+}
+
+export interface ActionLog {
+  id: number;
+  staffId: number;
+  guestId: number;
+  action: string;
+  description: string;
+  createdAt: string;
 }
 
 export type AdminStatsSubscriptionsByPlanItem = {

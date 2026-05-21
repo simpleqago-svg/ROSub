@@ -73,7 +73,7 @@ export default function PlansPage() {
                 <p className="text-xs text-white/50 uppercase tracking-wide">Бонусы</p>
                 <div className="flex flex-wrap gap-2">
                   <span className="text-xs bg-white/10 text-white/80 px-2.5 py-1 rounded-full">
-                    Калик за 350 RSD после окончания
+                    Кальян за 350 RSD после окончания
                   </span>
                   {plan.bonusHookahFruit > 0 && (
                     <span className="text-xs bg-white/15 text-white/80 px-2.5 py-1 rounded-full">

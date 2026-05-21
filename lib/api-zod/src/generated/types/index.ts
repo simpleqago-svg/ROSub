@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './actionLog';
 export * from './adminStats';
 export * from './adminStatsSubscriptionsByPlanItem';
 export * from './adminUserView';
@@ -15,6 +16,7 @@ export * from './subscriptionActivateInput';
 export * from './subscriptionPlan';
 export * from './subscriptionUsageUpdate';
 export * from './telegramAuthInput';
+export * from './updateNoteInput';
 export * from './user';
 export * from './userRole';
 export * from './userSubscriptionDetail';

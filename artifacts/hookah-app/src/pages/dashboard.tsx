@@ -1,29 +1,68 @@
-import { useGetMe, useGetMySubscription } from "@workspace/api-client-react";
+import { useGetMe, useGetMySubscription, useUpdateMyNote } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 
-function StatCard({ label, value, available }: { label: string; value: string | number; available?: boolean }) {
-  const isBoolean = typeof available !== "undefined";
+function ProgressBar({ remaining, total, label }: { remaining: number; total: number; label: string }) {
+  const pct = total > 0 ? Math.round((remaining / total) * 100) : 0;
+  const color = pct > 50 ? "bg-primary" : pct > 20 ? "bg-amber-500" : "bg-red-500";
   return (
-    <div className={`bg-card border rounded-xl p-4 flex flex-col gap-1 ${isBoolean ? (available ? "border-primary/30" : "border-border") : "border-border"}`}>
-      <span className="text-xs text-muted-foreground uppercase tracking-wide">{label}</span>
-      {isBoolean ? (
-        <span className={`font-semibold text-base ${available ? "text-primary" : "text-muted-foreground"}`}>
-          {available ? "Доступно" : "Недоступно"}
-        </span>
-      ) : (
-        <span className="font-bold text-2xl text-foreground">{value}</span>
-      )}
+    <div className="bg-card border border-border rounded-xl px-4 py-3 space-y-2">
+      <div className="flex justify-between items-baseline">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="font-bold text-lg text-foreground">{remaining}<span className="text-muted-foreground text-xs font-normal"> / {total}</span></span>
+      </div>
+      <div className="w-full bg-muted rounded-full h-1.5">
+        <div className={`${color} h-1.5 rounded-full transition-all`} style={{ width: `${pct}%` }} />
+      </div>
     </div>
   );
 }
+
+function BoolCard({ label, available }: { label: string; available: boolean }) {
+  return (
+    <div className={`bg-card border rounded-xl p-4 flex flex-col gap-1 ${available ? "border-primary/30" : "border-border"}`}>
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={`font-semibold text-base ${available ? "text-primary" : "text-muted-foreground"}`}>
+        {available ? "Доступно" : "Использовано"}
+      </span>
+    </div>
+  );
+}
+
+const DEBOUNCE_MS = 800;
 
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const { data: user, isLoading: userLoading, error: userError } = useGetMe();
   const { data: sub, isLoading: subLoading } = useGetMySubscription();
+  const updateNoteMutation = useUpdateMyNote();
+
+  const [note, setNote] = useState<string>("");
+  const [noteSaved, setNoteSaved] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (user && !initializedRef.current) {
+      setNote(user.note ?? "");
+      initializedRef.current = true;
+    }
+  }, [user]);
+
+  const handleNoteChange = (val: string) => {
+    if (val.length > 300) return;
+    setNote(val);
+    setNoteSaved(false);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      updateNoteMutation.mutate(
+        { data: { note: val || null } },
+        { onSuccess: () => setNoteSaved(true) }
+      );
+    }, DEBOUNCE_MS);
+  };
 
   useEffect(() => {
     if (userError) {
@@ -95,18 +134,32 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Stats grid */}
+            {/* Progress bars for counts */}
+            <div className="space-y-2">
+              <ProgressBar
+                remaining={sub.hookahsRemaining}
+                total={sub.plan.hookahCount}
+                label="Кальяны"
+              />
+              {sub.plan.bonusHookahFruit > 0 && (
+                <ProgressBar
+                  remaining={sub.fruitHookahsRemaining}
+                  total={sub.plan.bonusHookahFruit}
+                  label="На фруктовой чаше"
+                />
+              )}
+            </div>
+
+            {/* Boolean bonuses */}
             <div className="grid grid-cols-2 gap-3">
-              <StatCard label="Кальяны" value={`${sub.hookahsRemaining} шт`} />
-              <StatCard label="На фруктовой чаше" value={`${sub.fruitHookahsRemaining} шт`} />
-              <StatCard label="Калик за 350 RSD" available={sub.cheapHookahAvailable} value="" />
-              <StatCard label="Электронная чаша" available={sub.electricAvailable} value="" />
+              <BoolCard label="Кальян за 350 RSD" available={sub.cheapHookahAvailable} />
+              <BoolCard label="Электронная чаша" available={sub.electricAvailable} />
             </div>
 
             {/* Staff note */}
             {sub.note && (
               <div className="bg-accent/10 border border-accent/20 rounded-xl px-4 py-3">
-                <p className="text-xs text-muted-foreground mb-1">Заметка от персонала</p>
+                <p className="text-xs text-muted-foreground mb-1">Заметка персонала</p>
                 <p className="text-sm text-foreground">{sub.note}</p>
               </div>
             )}
@@ -123,6 +176,25 @@ export default function DashboardPage() {
             </button>
           </div>
         )}
+
+        {/* Guest note */}
+        <div className="bg-card border border-border rounded-xl px-4 py-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Моя заметка</p>
+            <span className="text-xs text-muted-foreground">
+              {note.length}/300
+              {noteSaved && <span className="text-primary ml-1">· сохранено</span>}
+            </span>
+          </div>
+          <textarea
+            value={note}
+            onChange={(e) => handleNoteChange(e.target.value)}
+            rows={3}
+            maxLength={300}
+            placeholder="Стоп-вкусы, любимый микс, пожелания..."
+            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+          />
+        </div>
       </div>
     </div>
   );

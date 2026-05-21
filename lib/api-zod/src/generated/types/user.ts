@@ -18,5 +18,7 @@ export interface User {
   /** @nullable */
   photoUrl?: string | null;
   role: UserRole;
+  /** @nullable */
+  note?: string | null;
   createdAt: string;
 }

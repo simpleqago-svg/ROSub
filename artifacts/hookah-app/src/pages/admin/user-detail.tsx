@@ -1,10 +1,33 @@
-import { useAdminGetUser, useAdminActivateSubscription, useAdminUpdateSubscription, useGetSubscriptionPlans, getAdminGetUserQueryKey, getAdminGetUsersQueryKey, getAdminGetStatsQueryKey } from "@workspace/api-client-react";
+import {
+  useAdminGetUser,
+  useAdminActivateSubscription,
+  useAdminUpdateSubscription,
+  useAdminUseHookah,
+  useAdminUseFruit,
+  useAdminUseCheap,
+  useAdminUseElectric,
+  useAdminGetUserLogs,
+  useGetSubscriptionPlans,
+  getAdminGetUserQueryKey,
+  getAdminGetUsersQueryKey,
+  getAdminGetStatsQueryKey,
+  getAdminGetUserLogsQueryKey,
+} from "@workspace/api-client-react";
 import { useLocation, useParams } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Save, Plus } from "lucide-react";
+
+const ACTION_LABELS: Record<string, string> = {
+  hookah: "🌿 Кальян",
+  fruit: "🍉 Фрукт",
+  cheap: "💰 350 RSD кальян",
+  electric: "⚡ Электронная чаша",
+  activate: "✅ Активация подписки",
+  manual_adjust: "✏️ Ручная корректировка",
+};
 
 export default function AdminUserDetailPage() {
   const [, setLocation] = useLocation();
@@ -16,8 +39,16 @@ export default function AdminUserDetailPage() {
     query: { enabled: !!userId, queryKey: getAdminGetUserQueryKey(userId) },
   });
   const { data: plans } = useGetSubscriptionPlans();
+  const { data: logs } = useAdminGetUserLogs(userId, {
+    query: { enabled: !!userId, queryKey: getAdminGetUserLogsQueryKey(userId) },
+  });
+
   const activateMutation = useAdminActivateSubscription();
   const updateMutation = useAdminUpdateSubscription();
+  const useHookahMutation = useAdminUseHookah();
+  const useFruitMutation = useAdminUseFruit();
+  const useCheapMutation = useAdminUseCheap();
+  const useElectricMutation = useAdminUseElectric();
 
   const [editMode, setEditMode] = useState(false);
   const [hookahsRemaining, setHookahsRemaining] = useState<number | "">("");
@@ -42,6 +73,7 @@ export default function AdminUserDetailPage() {
     queryClient.invalidateQueries({ queryKey: getAdminGetUserQueryKey(userId) });
     queryClient.invalidateQueries({ queryKey: getAdminGetUsersQueryKey() });
     queryClient.invalidateQueries({ queryKey: getAdminGetStatsQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getAdminGetUserLogsQueryKey(userId) });
   };
 
   const handleSave = () => {
@@ -82,6 +114,27 @@ export default function AdminUserDetailPage() {
     );
   };
 
+  const doAction = (
+    mutation: typeof useHookahMutation,
+    label: string,
+    errorCheck?: () => string | null
+  ) => {
+    const err = errorCheck?.();
+    if (err) { toast({ title: "Нельзя", description: err, variant: "destructive" }); return; }
+    mutation.mutate(
+      { userId },
+      {
+        onSuccess: () => { toast({ title: label, description: "Успешно списано" }); invalidate(); },
+        onError: (e) => {
+          const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error ?? "Ошибка";
+          toast({ title: "Ошибка", description: msg, variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const isPending = useHookahMutation.isPending || useFruitMutation.isPending || useCheapMutation.isPending || useElectricMutation.isPending;
+
   if (isLoading) {
     return (
       <div className="p-4 space-y-4">
@@ -92,6 +145,8 @@ export default function AdminUserDetailPage() {
   }
 
   if (!user) return <div className="p-4 text-muted-foreground">Гость не найден</div>;
+
+  const sub = user.subscription;
 
   return (
     <div className="min-h-screen pb-24">
@@ -130,13 +185,21 @@ export default function AdminUserDetailPage() {
           </div>
         </div>
 
+        {/* Guest note (read-only for admin) */}
+        {user.note && (
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
+            <p className="text-xs text-amber-400 mb-1">Заметка гостя</p>
+            <p className="text-sm text-foreground">{user.note}</p>
+          </div>
+        )}
+
         {/* Subscription */}
-        {user.subscription ? (
+        {sub ? (
           <div className="bg-card border border-primary/20 rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Подписка</p>
-                <p className="font-bold text-primary">{user.subscription.plan.nameRu}</p>
+                <p className="font-bold text-primary">{sub.plan.nameRu}</p>
               </div>
               {!editMode && (
                 <button
@@ -195,12 +258,12 @@ export default function AdminUserDetailPage() {
                       onChange={(e) => setCheapAvailable(e.target.checked)}
                       className="accent-primary"
                     />
-                    <span className="text-foreground">350 RSD калик</span>
+                    <span className="text-foreground">350 RSD кальян</span>
                   </label>
                 </div>
 
                 <div>
-                  <label className="text-xs text-muted-foreground">Заметка</label>
+                  <label className="text-xs text-muted-foreground">Заметка персонала (видна гостю)</label>
                   <textarea
                     data-testid="input-note"
                     value={note}
@@ -231,34 +294,80 @@ export default function AdminUserDetailPage() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="bg-background rounded-lg px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Кальянов</p>
-                  <p className="font-bold text-foreground">{user.subscription.hookahsRemaining}</p>
-                </div>
-                <div className="bg-background rounded-lg px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Фруктовых</p>
-                  <p className="font-bold text-foreground">{user.subscription.fruitHookahsRemaining}</p>
-                </div>
-                <div className={`bg-background rounded-lg px-3 py-2 ${user.subscription.cheapHookahAvailable ? "border border-primary/20" : ""}`}>
-                  <p className="text-xs text-muted-foreground">350 RSD калик</p>
-                  <p className={`font-bold ${user.subscription.cheapHookahAvailable ? "text-primary" : "text-muted-foreground"}`}>
-                    {user.subscription.cheapHookahAvailable ? "Доступно" : "Нет"}
-                  </p>
-                </div>
-                <div className={`bg-background rounded-lg px-3 py-2 ${user.subscription.electricAvailable ? "border border-primary/20" : ""}`}>
-                  <p className="text-xs text-muted-foreground">Электронная</p>
-                  <p className={`font-bold ${user.subscription.electricAvailable ? "text-primary" : "text-muted-foreground"}`}>
-                    {user.subscription.electricAvailable ? "Доступно" : "Нет"}
-                  </p>
-                </div>
-                {user.subscription.note && (
-                  <div className="col-span-2 bg-accent/10 border border-accent/20 rounded-lg px-3 py-2">
-                    <p className="text-xs text-muted-foreground">Заметка</p>
-                    <p className="text-sm text-foreground">{user.subscription.note}</p>
+              <>
+                {/* Balance display */}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="bg-background rounded-lg px-3 py-2">
+                    <p className="text-xs text-muted-foreground">Кальяны</p>
+                    <p className="font-bold text-foreground">{sub.hookahsRemaining} / {sub.plan.hookahCount}</p>
                   </div>
-                )}
-              </div>
+                  <div className="bg-background rounded-lg px-3 py-2">
+                    <p className="text-xs text-muted-foreground">Фруктовых</p>
+                    <p className="font-bold text-foreground">{sub.fruitHookahsRemaining} / {sub.plan.bonusHookahFruit}</p>
+                  </div>
+                  <div className={`bg-background rounded-lg px-3 py-2 ${sub.cheapHookahAvailable ? "border border-primary/20" : ""}`}>
+                    <p className="text-xs text-muted-foreground">350 RSD кальян</p>
+                    <p className={`font-bold ${sub.cheapHookahAvailable ? "text-primary" : "text-muted-foreground"}`}>
+                      {sub.cheapHookahAvailable ? "Доступен" : "Использован"}
+                    </p>
+                  </div>
+                  <div className={`bg-background rounded-lg px-3 py-2 ${sub.electricAvailable ? "border border-primary/20" : ""}`}>
+                    <p className="text-xs text-muted-foreground">Электронная чаша</p>
+                    <p className={`font-bold ${sub.electricAvailable ? "text-primary" : "text-muted-foreground"}`}>
+                      {sub.electricAvailable ? "Доступна" : "Использована"}
+                    </p>
+                  </div>
+                  {sub.note && (
+                    <div className="col-span-2 bg-accent/10 border border-accent/20 rounded-lg px-3 py-2">
+                      <p className="text-xs text-muted-foreground">Заметка персонала</p>
+                      <p className="text-sm text-foreground">{sub.note}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick action buttons */}
+                <div className="space-y-2 pt-1 border-t border-border">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Быстрое списание</p>
+                  <button
+                    data-testid="button-use-hookah"
+                    onClick={() => doAction(useHookahMutation, "Кальян списан", () => sub.hookahsRemaining <= 0 ? "Кальяны закончились" : null)}
+                    disabled={isPending || sub.hookahsRemaining <= 0}
+                    className="w-full bg-primary text-primary-foreground rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                  >
+                    🌿 Списать 1 кальян
+                    {sub.hookahsRemaining <= 0 ? " (нет)" : ` (осталось ${sub.hookahsRemaining})`}
+                  </button>
+                  {sub.plan.bonusHookahFruit > 0 && (
+                    <button
+                      data-testid="button-use-fruit"
+                      onClick={() => doAction(useFruitMutation, "Фрукт списан", () => sub.fruitHookahsRemaining <= 0 ? "Фруктовые закончились" : null)}
+                      disabled={isPending || sub.fruitHookahsRemaining <= 0}
+                      className="w-full bg-amber-600 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                    >
+                      🍉 Списать фрукт
+                      {sub.fruitHookahsRemaining <= 0 ? " (нет)" : ` (осталось ${sub.fruitHookahsRemaining})`}
+                    </button>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      data-testid="button-use-cheap"
+                      onClick={() => doAction(useCheapMutation, "350 RSD кальян списан")}
+                      disabled={isPending || !sub.cheapHookahAvailable}
+                      className="bg-zinc-700 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                    >
+                      💰 350 RSD кальян
+                    </button>
+                    <button
+                      data-testid="button-use-electric"
+                      onClick={() => doAction(useElectricMutation, "Электронная чаша списана")}
+                      disabled={isPending || !sub.electricAvailable}
+                      className="bg-zinc-700 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                    >
+                      ⚡ Эл. чаша
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         ) : (
@@ -316,6 +425,26 @@ export default function AdminUserDetailPage() {
                 Активировать подписку
               </button>
             )}
+          </div>
+        )}
+
+        {/* Action logs */}
+        {logs && logs.length > 0 && (
+          <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">История списаний</p>
+            <div className="space-y-2">
+              {logs.map((log) => (
+                <div key={log.id} className="flex items-start justify-between gap-2 py-1.5 border-b border-border last:border-0">
+                  <div>
+                    <p className="text-sm text-foreground">{ACTION_LABELS[log.action] ?? log.action}</p>
+                    <p className="text-xs text-muted-foreground">{log.description}</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground whitespace-nowrap">
+                    {new Date(log.createdAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

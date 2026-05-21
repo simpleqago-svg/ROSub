@@ -69,6 +69,27 @@ paths:
         "401":
           description: Unauthorized
 
+  /users/me/note:
+    patch:
+      operationId: updateMyNote
+      tags: [users]
+      summary: Update my personal note (guest)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNoteInput"
+      responses:
+        "200":
+          description: Note updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+
   /subscriptions/plans:
     get:
       operationId: getSubscriptionPlans
@@ -212,6 +233,98 @@ paths:
         "403":
           description: Forbidden
 
+  /admin/users/{userId}/use-fruit:
+    post:
+      operationId: adminUseFruit
+      tags: [admin]
+      summary: Redeem a fruit hookah for user (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Fruit hookah redeemed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDetail"
+        "400":
+          description: No fruit hookahs remaining
+        "403":
+          description: Forbidden
+
+  /admin/users/{userId}/use-cheap:
+    post:
+      operationId: adminUseCheap
+      tags: [admin]
+      summary: Redeem 350 RSD hookah for user (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Redeemed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDetail"
+        "400":
+          description: Not available
+        "403":
+          description: Forbidden
+
+  /admin/users/{userId}/use-electric:
+    post:
+      operationId: adminUseElectric
+      tags: [admin]
+      summary: Redeem electric bowl for user (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Redeemed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDetail"
+        "400":
+          description: Not available
+        "403":
+          description: Forbidden
+
+  /admin/users/{userId}/logs:
+    get:
+      operationId: adminGetUserLogs
+      tags: [admin]
+      summary: Get action logs for a user (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Action logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActionLog"
+        "403":
+          description: Forbidden
+
   /admin/stats:
     get:
       operationId: adminGetStats
@@ -261,6 +374,13 @@ components:
         token:
           type: string
 
+    UpdateNoteInput:
+      type: object
+      required: [note]
+      properties:
+        note:
+          type: ["string", "null"]
+
     User:
       type: object
       required: [id, telegramId, firstName, role, createdAt]
@@ -280,6 +400,8 @@ components:
         role:
           type: string
           enum: [user, staff, admin]
+        note:
+          type: ["string", "null"]
         createdAt:
           type: string
 
@@ -374,10 +496,29 @@ components:
           type: ["string", "null"]
         role:
           type: string
+        note:
+          type: ["string", "null"]
         createdAt:
           type: string
         subscription:
           $ref: "#/components/schemas/UserSubscriptionDetail"
+
+    ActionLog:
+      type: object
+      required: [id, staffId, guestId, action, description, createdAt]
+      properties:
+        id:
+          type: integer
+        staffId:
+          type: integer
+        guestId:
+          type: integer
+        action:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
 
     AdminStats:
       type: object

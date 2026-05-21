@@ -37,6 +37,7 @@ export const AuthTelegramResponse = zod.object({
   "username": zod.string().nullish(),
   "photoUrl": zod.string().nullish(),
   "role": zod.enum(['user', 'staff', 'admin']),
+  "note": zod.string().nullish(),
   "createdAt": zod.string()
 }),
   "token": zod.string()
@@ -54,6 +55,27 @@ export const GetMeResponse = zod.object({
   "username": zod.string().nullish(),
   "photoUrl": zod.string().nullish(),
   "role": zod.enum(['user', 'staff', 'admin']),
+  "note": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update my personal note (guest)
+ */
+export const UpdateMyNoteBody = zod.object({
+  "note": zod.string().nullable()
+})
+
+export const UpdateMyNoteResponse = zod.object({
+  "id": zod.number(),
+  "telegramId": zod.number(),
+  "firstName": zod.string(),
+  "lastName": zod.string().nullish(),
+  "username": zod.string().nullish(),
+  "photoUrl": zod.string().nullish(),
+  "role": zod.enum(['user', 'staff', 'admin']),
+  "note": zod.string().nullish(),
   "createdAt": zod.string()
 })
 
@@ -115,6 +137,7 @@ export const AdminGetUsersResponseItem = zod.object({
   "lastName": zod.string().nullish(),
   "username": zod.string().nullish(),
   "role": zod.string(),
+  "note": zod.string().nullish(),
   "createdAt": zod.string(),
   "subscription": zod.object({
   "id": zod.number(),
@@ -158,6 +181,7 @@ export const AdminGetUserResponse = zod.object({
   "lastName": zod.string().nullish(),
   "username": zod.string().nullish(),
   "role": zod.string(),
+  "note": zod.string().nullish(),
   "createdAt": zod.string(),
   "subscription": zod.object({
   "id": zod.number(),
@@ -296,6 +320,123 @@ export const AdminUseHookahResponse = zod.object({
   "expiresAt": zod.string().nullable(),
   "note": zod.string().nullish()
 })
+
+
+/**
+ * @summary Redeem a fruit hookah for user (admin)
+ */
+export const AdminUseFruitParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const AdminUseFruitResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "planId": zod.number(),
+  "plan": zod.object({
+  "id": zod.number(),
+  "nameRu": zod.string(),
+  "nameRs": zod.string(),
+  "level": zod.number(),
+  "hookahCount": zod.number(),
+  "priceRsd": zod.number(),
+  "pricePerHookah": zod.number(),
+  "bonusHookahFruit": zod.number(),
+  "bonusElectric": zod.number(),
+  "bonusHookahCheap": zod.number()
+}),
+  "hookahsRemaining": zod.number(),
+  "fruitHookahsRemaining": zod.number(),
+  "electricAvailable": zod.boolean(),
+  "cheapHookahAvailable": zod.boolean(),
+  "activatedAt": zod.string(),
+  "expiresAt": zod.string().nullable(),
+  "note": zod.string().nullish()
+})
+
+
+/**
+ * @summary Redeem 350 RSD hookah for user (admin)
+ */
+export const AdminUseCheapParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const AdminUseCheapResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "planId": zod.number(),
+  "plan": zod.object({
+  "id": zod.number(),
+  "nameRu": zod.string(),
+  "nameRs": zod.string(),
+  "level": zod.number(),
+  "hookahCount": zod.number(),
+  "priceRsd": zod.number(),
+  "pricePerHookah": zod.number(),
+  "bonusHookahFruit": zod.number(),
+  "bonusElectric": zod.number(),
+  "bonusHookahCheap": zod.number()
+}),
+  "hookahsRemaining": zod.number(),
+  "fruitHookahsRemaining": zod.number(),
+  "electricAvailable": zod.boolean(),
+  "cheapHookahAvailable": zod.boolean(),
+  "activatedAt": zod.string(),
+  "expiresAt": zod.string().nullable(),
+  "note": zod.string().nullish()
+})
+
+
+/**
+ * @summary Redeem electric bowl for user (admin)
+ */
+export const AdminUseElectricParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const AdminUseElectricResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "planId": zod.number(),
+  "plan": zod.object({
+  "id": zod.number(),
+  "nameRu": zod.string(),
+  "nameRs": zod.string(),
+  "level": zod.number(),
+  "hookahCount": zod.number(),
+  "priceRsd": zod.number(),
+  "pricePerHookah": zod.number(),
+  "bonusHookahFruit": zod.number(),
+  "bonusElectric": zod.number(),
+  "bonusHookahCheap": zod.number()
+}),
+  "hookahsRemaining": zod.number(),
+  "fruitHookahsRemaining": zod.number(),
+  "electricAvailable": zod.boolean(),
+  "cheapHookahAvailable": zod.boolean(),
+  "activatedAt": zod.string(),
+  "expiresAt": zod.string().nullable(),
+  "note": zod.string().nullish()
+})
+
+
+/**
+ * @summary Get action logs for a user (admin)
+ */
+export const AdminGetUserLogsParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const AdminGetUserLogsResponseItem = zod.object({
+  "id": zod.number(),
+  "staffId": zod.number(),
+  "guestId": zod.number(),
+  "action": zod.string(),
+  "description": zod.string(),
+  "createdAt": zod.string()
+})
+export const AdminGetUserLogsResponse = zod.array(AdminGetUserLogsResponseItem)
 
 
 /**

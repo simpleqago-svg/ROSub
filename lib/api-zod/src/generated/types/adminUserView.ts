@@ -16,6 +16,8 @@ export interface AdminUserView {
   /** @nullable */
   username?: string | null;
   role: string;
+  /** @nullable */
+  note?: string | null;
   createdAt: string;
   subscription?: UserSubscriptionDetail;
 }
