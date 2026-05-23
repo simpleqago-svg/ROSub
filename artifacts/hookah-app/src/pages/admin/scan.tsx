@@ -13,6 +13,7 @@ import { useRef, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { Html5Qrcode } from "html5-qrcode";
+import { Lock } from "lucide-react";
 
 type ScannedState = { userId: number } | null;
 
@@ -71,6 +72,7 @@ export default function AdminScanPage() {
           const userId = parseInt(decodedText, 10);
           if (!isNaN(userId) && userId > 0) {
             html5QrCode.stop().catch(() => {});
+            scannerRef.current = null;
             setScanning(false);
             setScanned({ userId });
           }
@@ -84,13 +86,18 @@ export default function AdminScanPage() {
 
   useEffect(() => {
     startScanner();
-    return () => { scannerRef.current?.stop().catch(() => {}); };
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+        scannerRef.current = null;
+      }
+    };
   }, []);
 
   const resetScan = () => {
     setScanned(null);
     setManualId("");
-    startScanner();
+    setTimeout(() => startScanner(), 100);
   };
 
   const handleManual = () => {
@@ -103,6 +110,8 @@ export default function AdminScanPage() {
 
   const sub = guestData?.subscription;
   const isPending = useHookahMutation.isPending || useFruitMutation.isPending || useCheapMutation.isPending || useElectricMutation.isPending;
+  const cheapLocked = sub ? sub.hookahsRemaining > 0 : false;
+  const cheapAvailableDisplay = sub ? (sub.cheapHookahAvailable && sub.hookahsRemaining === 0) : false;
 
   return (
     <div className="min-h-screen pb-24">
@@ -121,7 +130,7 @@ export default function AdminScanPage() {
       </div>
 
       <div className="px-4 pt-4 space-y-4">
-        {/* QR scanner — hidden once scanned */}
+        {/* QR scanner */}
         {!scanned && (
           <div className="bg-card border border-border rounded-2xl overflow-hidden">
             <div id="qr-reader" className="w-full" />
@@ -133,27 +142,33 @@ export default function AdminScanPage() {
           </div>
         )}
 
-        {/* After scan: show action panel */}
+        {/* Scan result */}
         {scanned && (
           <>
-            {/* Guest info */}
-            {guestData && (
-              <div className="bg-card border border-border rounded-xl px-4 py-3">
-                <p className="text-xs text-muted-foreground">Гость</p>
-                <p className="font-bold text-foreground text-base">
-                  {guestData.firstName} {guestData.lastName ?? ""}
-                </p>
-                {guestData.username && <p className="text-xs text-muted-foreground">@{guestData.username}</p>}
+            {/* Guest info + note */}
+            {guestData ? (
+              <div className="bg-card border border-border rounded-xl px-4 py-3 space-y-2">
+                <div>
+                  <p className="text-xs text-muted-foreground">Гость</p>
+                  <p className="font-bold text-foreground text-base">
+                    {guestData.firstName} {guestData.lastName ?? ""}
+                  </p>
+                  {guestData.username && <p className="text-xs text-muted-foreground">@{guestData.username}</p>}
+                </div>
                 {guestData.note && (
-                  <div className="mt-2 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
                     <p className="text-xs text-amber-400 mb-0.5">Заметка гостя</p>
                     <p className="text-sm text-foreground">{guestData.note}</p>
                   </div>
                 )}
               </div>
+            ) : (
+              <div className="bg-card border border-border rounded-xl px-4 py-3 text-sm text-muted-foreground">
+                Загрузка...
+              </div>
             )}
 
-            {/* Subscription summary */}
+            {/* Subscription balance */}
             {sub ? (
               <div className="bg-card border border-primary/20 rounded-xl p-4 space-y-3">
                 <div>
@@ -171,11 +186,18 @@ export default function AdminScanPage() {
                       <p className="font-bold">{sub.fruitHookahsRemaining} / {sub.plan.bonusHookahFruit}</p>
                     </div>
                   )}
-                  <div className={`bg-background rounded-lg px-3 py-2 ${sub.cheapHookahAvailable ? "border border-primary/20" : ""}`}>
+                  <div className={`bg-background rounded-lg px-3 py-2 ${cheapAvailableDisplay ? "border border-primary/20" : ""}`}>
                     <p className="text-xs text-muted-foreground">350 RSD кальян</p>
-                    <p className={`font-bold text-sm ${sub.cheapHookahAvailable ? "text-primary" : "text-muted-foreground"}`}>
-                      {sub.cheapHookahAvailable ? "Доступен" : "Использован"}
-                    </p>
+                    {cheapLocked ? (
+                      <div className="flex items-center gap-1">
+                        <Lock className="w-3 h-3 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">В конце</p>
+                      </div>
+                    ) : (
+                      <p className={`font-bold text-sm ${cheapAvailableDisplay ? "text-primary" : "text-muted-foreground"}`}>
+                        {cheapAvailableDisplay ? "Доступен" : "Использован"}
+                      </p>
+                    )}
                   </div>
                   <div className={`bg-background rounded-lg px-3 py-2 ${sub.electricAvailable ? "border border-primary/20" : ""}`}>
                     <p className="text-xs text-muted-foreground">Эл. чаша</p>
@@ -185,7 +207,7 @@ export default function AdminScanPage() {
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : guestData && (
               <div className="bg-card border border-border rounded-xl p-4 text-sm text-muted-foreground">
                 Нет активной подписки
               </div>
@@ -201,51 +223,46 @@ export default function AdminScanPage() {
                   disabled={isPending || sub.hookahsRemaining <= 0}
                   className="w-full bg-primary text-primary-foreground rounded-xl py-3 font-semibold disabled:opacity-40"
                 >
-                  🌿 Списать 1 кальян {sub.hookahsRemaining <= 0 ? "(нет)" : `(осталось ${sub.hookahsRemaining})`}
+                  🌿 Кальян {sub.hookahsRemaining <= 0 ? "(нет)" : `(осталось ${sub.hookahsRemaining})`}
                 </button>
                 {sub.plan.bonusHookahFruit > 0 && (
                   <button
                     data-testid="button-use-fruit"
                     onClick={() => doAction(useFruitMutation, scanned.userId, "Фрукт списан")}
-                    disabled={isPending || sub.fruitHookahsRemaining <= 0}
+                    disabled={isPending || sub.fruitHookahsRemaining <= 0 || sub.hookahsRemaining <= 0}
                     className="w-full bg-amber-600 text-white rounded-xl py-3 font-semibold disabled:opacity-40"
                   >
-                    🍉 Списать фрукт {sub.fruitHookahsRemaining <= 0 ? "(нет)" : `(осталось ${sub.fruitHookahsRemaining})`}
+                    🍉 Фрукт (−1 кальян и −1 фруктовый)
+                    {sub.fruitHookahsRemaining <= 0 ? " (нет)" : ` (ост. ${sub.fruitHookahsRemaining})`}
                   </button>
                 )}
-                <button
-                  data-testid="button-use-cheap"
-                  onClick={() => doAction(useCheapMutation, scanned.userId, "350 RSD кальян списан")}
-                  disabled={isPending || !sub.cheapHookahAvailable}
-                  className="w-full bg-zinc-700 text-white rounded-xl py-3 font-semibold disabled:opacity-40"
-                >
-                  💰 Списать 350 RSD кальян {!sub.cheapHookahAvailable ? "(использован)" : ""}
-                </button>
-                <button
-                  data-testid="button-use-electric"
-                  onClick={() => doAction(useElectricMutation, scanned.userId, "Электронная чаша списана")}
-                  disabled={isPending || !sub.electricAvailable}
-                  className="w-full bg-zinc-700 text-white rounded-xl py-3 font-semibold disabled:opacity-40"
-                >
-                  ⚡ Списать электронную чашу {!sub.electricAvailable ? "(использована)" : ""}
-                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    data-testid="button-use-cheap"
+                    onClick={() => doAction(useCheapMutation, scanned.userId, "350 RSD кальян списан")}
+                    disabled={isPending || !cheapAvailableDisplay}
+                    className="bg-zinc-700 text-white rounded-xl py-3 font-semibold disabled:opacity-40"
+                  >
+                    💰 350 RSD
+                  </button>
+                  <button
+                    data-testid="button-use-electric"
+                    onClick={() => doAction(useElectricMutation, scanned.userId, "Эл. чаша списана")}
+                    disabled={isPending || !sub.electricAvailable}
+                    className="bg-zinc-700 text-white rounded-xl py-3 font-semibold disabled:opacity-40"
+                  >
+                    ⚡ Эл. чаша
+                  </button>
+                </div>
               </div>
             )}
 
-            <div className="flex gap-2 pt-1">
-              <button
-                onClick={() => setLocation(`/admin/users/${scanned.userId}`)}
-                className="flex-1 bg-card border border-border text-foreground rounded-xl py-2.5 text-sm font-medium"
-              >
-                Открыть профиль
-              </button>
-              <button
-                onClick={resetScan}
-                className="flex-1 bg-primary/10 text-primary border border-primary/20 rounded-xl py-2.5 text-sm font-medium"
-              >
-                Сканировать ещё
-              </button>
-            </div>
+            <button
+              onClick={resetScan}
+              className="w-full bg-primary/10 text-primary border border-primary/20 rounded-xl py-2.5 text-sm font-medium"
+            >
+              Сканировать ещё
+            </button>
           </>
         )}
 

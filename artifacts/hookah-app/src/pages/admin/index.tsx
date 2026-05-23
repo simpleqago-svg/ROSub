@@ -2,7 +2,7 @@ import { useAdminGetStats, useAdminGetLogs, useGetMe } from "@workspace/api-clie
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Activity, QrCode, ChevronRight } from "lucide-react";
+import { QrCode, ChevronRight } from "lucide-react";
 
 const ACTION_LABELS: Record<string, string> = {
   hookah: "🌿 Кальян",
@@ -42,7 +42,7 @@ export default function AdminPage() {
       </div>
 
       <div className="px-4 pt-4 space-y-4">
-        {/* Stats */}
+        {/* Stats — clickable cards */}
         {isLoading ? (
           <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -52,21 +52,30 @@ export default function AdminPage() {
         ) : stats ? (
           <>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-card border border-border rounded-xl p-4">
+              <button
+                data-testid="button-stat-users"
+                onClick={() => setLocation("/admin/users")}
+                className="bg-card border border-border rounded-xl p-4 text-left hover:bg-card/80 transition-colors"
+              >
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Всего гостей</p>
                 <p data-testid="text-total-users" className="text-3xl font-bold text-foreground mt-1">{stats.totalUsers}</p>
-              </div>
-              <div className="bg-card border border-primary/20 rounded-xl p-4">
+                <p className="text-xs text-primary mt-1">Список →</p>
+              </button>
+              <button
+                data-testid="button-stat-subs"
+                onClick={() => setLocation("/admin/users")}
+                className="bg-card border border-primary/20 rounded-xl p-4 text-left hover:bg-card/80 transition-colors"
+              >
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Активных подписок</p>
                 <p data-testid="text-active-subs" className="text-3xl font-bold text-primary mt-1">{stats.activeSubscriptions}</p>
-              </div>
+                <p className="text-xs text-primary mt-1">Список →</p>
+              </button>
               <div className="bg-card border border-border rounded-xl p-4 col-span-2">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Кальянов выкурено (всего)</p>
                 <p data-testid="text-hookahs-used" className="text-3xl font-bold text-foreground mt-1">{stats.totalHookahsUsed}</p>
               </div>
             </div>
 
-            {/* By plan */}
             {stats.subscriptionsByPlan && stats.subscriptionsByPlan.length > 0 && (
               <div className="bg-card border border-border rounded-xl p-4 space-y-2">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">По уровням</p>
@@ -81,42 +90,18 @@ export default function AdminPage() {
           </>
         ) : null}
 
-        {/* Quick actions */}
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">Действия</p>
+        {/* Single action: QR scan */}
+        <button
+          data-testid="button-admin-scan"
+          onClick={() => setLocation("/admin/scan")}
+          className="w-full bg-primary text-primary-foreground rounded-xl px-4 py-3.5 flex items-center gap-3 font-medium"
+        >
+          <QrCode className="w-5 h-5" />
+          <span className="flex-1 text-left text-sm">Сканировать QR-код</span>
+          <ChevronRight className="w-4 h-4 opacity-70" />
+        </button>
 
-          <button
-            data-testid="button-admin-users"
-            onClick={() => setLocation("/admin/users")}
-            className="w-full bg-card border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:bg-card/80 transition-colors"
-          >
-            <Users className="w-5 h-5 text-primary" />
-            <span className="flex-1 text-left text-sm font-medium">Список гостей</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-
-          <button
-            data-testid="button-admin-scan"
-            onClick={() => setLocation("/admin/scan")}
-            className="w-full bg-card border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:bg-card/80 transition-colors"
-          >
-            <QrCode className="w-5 h-5 text-primary" />
-            <span className="flex-1 text-left text-sm font-medium">Сканировать QR</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-
-          <button
-            data-testid="button-admin-activity"
-            onClick={() => setLocation("/admin/activity")}
-            className="w-full bg-card border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:bg-card/80 transition-colors"
-          >
-            <Activity className="w-5 h-5 text-primary" />
-            <span className="flex-1 text-left text-sm font-medium">Вся активность</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </div>
-
-        {/* Recent activity preview */}
+        {/* Recent activity */}
         {recentLogs.length > 0 && (
           <div className="bg-card border border-border rounded-xl p-4 space-y-2">
             <div className="flex items-center justify-between mb-1">

@@ -188,8 +188,8 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-3">
               <BoolCard
                 label="Кальян за 350 RSD"
-                available={sub.cheapHookahAvailable}
-                locked={!sub.cheapHookahAvailable && sub.hookahsRemaining > 0}
+                available={sub.cheapHookahAvailable && sub.hookahsRemaining === 0}
+                locked={sub.hookahsRemaining > 0}
                 lockedHint="Откроется в конце"
               />
               <BoolCard label="Электронная чаша" available={sub.electricAvailable} />
