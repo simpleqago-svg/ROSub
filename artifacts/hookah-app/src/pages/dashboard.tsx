@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState, useRef } from "react";
+import { Lock } from "lucide-react";
 
 function ProgressBar({ remaining, total, label }: { remaining: number; total: number; label: string }) {
   const pct = total > 0 ? Math.round((remaining / total) * 100) : 0;
@@ -20,7 +21,18 @@ function ProgressBar({ remaining, total, label }: { remaining: number; total: nu
   );
 }
 
-function BoolCard({ label, available }: { label: string; available: boolean }) {
+function BoolCard({ label, available, locked, lockedHint }: { label: string; available: boolean; locked?: boolean; lockedHint?: string }) {
+  if (locked) {
+    return (
+      <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <div className="flex items-center gap-1.5">
+          <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="font-semibold text-sm text-muted-foreground">{lockedHint ?? "Заблокировано"}</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`bg-card border rounded-xl p-4 flex flex-col gap-1 ${available ? "border-primary/30" : "border-border"}`}>
       <span className="text-xs text-muted-foreground">{label}</span>
@@ -75,8 +87,9 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen p-4 space-y-4">
         <Skeleton className="h-16 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-48 w-full rounded-xl" />
+        <Skeleton className="h-52 w-full rounded-xl" />
+        <Skeleton className="h-28 w-full rounded-xl" />
+        <Skeleton className="h-20 w-full rounded-xl" />
       </div>
     );
   }
@@ -119,22 +132,43 @@ export default function DashboardPage() {
 
         {/* Subscription */}
         {subLoading ? (
-          <Skeleton className="h-48 w-full rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-24 w-full rounded-2xl" />
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="h-20 rounded-xl" />
+              <Skeleton className="h-20 rounded-xl" />
+            </div>
+          </div>
         ) : sub ? (
           <>
-            {/* Plan badge */}
+            {/* Plan badge + dates */}
             <div className="bg-primary/10 border border-primary/20 rounded-2xl px-5 py-4">
               <p className="text-xs text-primary/70 uppercase tracking-wide mb-1">Активная подписка</p>
               <h2 className="text-xl font-bold text-primary">{sub.plan.nameRu}</h2>
               <p className="text-sm text-muted-foreground">{sub.plan.nameRs}</p>
-              {sub.activatedAt && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Активирована: {new Date(sub.activatedAt).toLocaleDateString("ru-RU")}
-                </p>
-              )}
+              <div className="mt-3 pt-3 border-t border-primary/10 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div>
+                  <p className="text-primary/60 uppercase tracking-wide text-[10px] mb-0.5">Активирована</p>
+                  <p className="font-medium text-foreground">
+                    {sub.activatedAt
+                      ? new Date(sub.activatedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-primary/60 uppercase tracking-wide text-[10px] mb-0.5">Срок действия</p>
+                  <p className="font-medium text-foreground">
+                    {sub.expiresAt
+                      ? new Date(sub.expiresAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+                      : "Бессрочно"}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Progress bars for counts */}
+            {/* Progress bars */}
             <div className="space-y-2">
               <ProgressBar
                 remaining={sub.hookahsRemaining}
@@ -152,7 +186,12 @@ export default function DashboardPage() {
 
             {/* Boolean bonuses */}
             <div className="grid grid-cols-2 gap-3">
-              <BoolCard label="Кальян за 350 RSD" available={sub.cheapHookahAvailable} />
+              <BoolCard
+                label="Кальян за 350 RSD"
+                available={sub.cheapHookahAvailable}
+                locked={!sub.cheapHookahAvailable && sub.hookahsRemaining > 0}
+                lockedHint="Откроется в конце"
+              />
               <BoolCard label="Электронная чаша" available={sub.electricAvailable} />
             </div>
 

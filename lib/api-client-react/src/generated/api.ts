@@ -1152,6 +1152,83 @@ export function useAdminGetUserLogs<TData = Awaited<ReturnType<typeof adminGetUs
 
 
 
+export const getAdminGetLogsUrl = () => {
+
+
+
+
+  return `/api/admin/logs`
+}
+
+/**
+ * @summary Get recent global activity logs (admin)
+ */
+export const adminGetLogs = async ( options?: RequestInit): Promise<ActionLog[]> => {
+
+  return customFetch<ActionLog[]>(getAdminGetLogsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminGetLogsQueryKey = () => {
+    return [
+    `/api/admin/logs`
+    ] as const;
+    }
+
+
+export const getAdminGetLogsQueryOptions = <TData = Awaited<ReturnType<typeof adminGetLogs>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminGetLogsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetLogs>>> = ({ signal }) => adminGetLogs({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminGetLogs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminGetLogsQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetLogs>>>
+export type AdminGetLogsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get recent global activity logs (admin)
+ */
+
+export function useAdminGetLogs<TData = Awaited<ReturnType<typeof adminGetLogs>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminGetLogsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getAdminGetStatsUrl = () => {
 
 

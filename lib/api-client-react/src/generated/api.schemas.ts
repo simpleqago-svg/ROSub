@@ -122,6 +122,10 @@ export interface ActionLog {
   id: number;
   staffId: number;
   guestId: number;
+  /** @nullable */
+  staffName?: string | null;
+  /** @nullable */
+  guestName?: string | null;
   action: string;
   description: string;
   createdAt: string;

@@ -49,3 +49,16 @@ export async function requireAdmin(
   }
   next();
 }
+
+export async function requireSuperAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const user = (req as Request & { user?: { role: string } }).user;
+  if (!user || user.role !== "admin") {
+    res.status(403).json({ error: "Forbidden: admin role required" });
+    return;
+  }
+  next();
+}

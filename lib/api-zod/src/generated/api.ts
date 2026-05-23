@@ -432,11 +432,29 @@ export const AdminGetUserLogsResponseItem = zod.object({
   "id": zod.number(),
   "staffId": zod.number(),
   "guestId": zod.number(),
+  "staffName": zod.string().nullish(),
+  "guestName": zod.string().nullish(),
   "action": zod.string(),
   "description": zod.string(),
   "createdAt": zod.string()
 })
 export const AdminGetUserLogsResponse = zod.array(AdminGetUserLogsResponseItem)
+
+
+/**
+ * @summary Get recent global activity logs (admin)
+ */
+export const AdminGetLogsResponseItem = zod.object({
+  "id": zod.number(),
+  "staffId": zod.number(),
+  "guestId": zod.number(),
+  "staffName": zod.string().nullish(),
+  "guestName": zod.string().nullish(),
+  "action": zod.string(),
+  "description": zod.string(),
+  "createdAt": zod.string()
+})
+export const AdminGetLogsResponse = zod.array(AdminGetLogsResponseItem)
 
 
 /**

@@ -325,6 +325,23 @@ paths:
         "403":
           description: Forbidden
 
+  /admin/logs:
+    get:
+      operationId: adminGetLogs
+      tags: [admin]
+      summary: Get recent global activity logs (admin)
+      responses:
+        "200":
+          description: Recent logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActionLog"
+        "403":
+          description: Forbidden
+
   /admin/stats:
     get:
       operationId: adminGetStats
@@ -513,6 +530,10 @@ components:
           type: integer
         guestId:
           type: integer
+        staffName:
+          type: ["string", "null"]
+        guestName:
+          type: ["string", "null"]
         action:
           type: string
         description:

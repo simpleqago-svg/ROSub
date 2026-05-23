@@ -1,13 +1,23 @@
-import { useAdminGetStats, useGetMe } from "@workspace/api-client-react";
+import { useAdminGetStats, useAdminGetLogs, useGetMe } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Activity, QrCode, ChevronRight } from "lucide-react";
 
+const ACTION_LABELS: Record<string, string> = {
+  hookah: "🌿 Кальян",
+  fruit: "🍉 Фрукт",
+  cheap: "💰 350 RSD",
+  electric: "⚡ Эл. чаша",
+  activate: "✅ Активация",
+  manual_adjust: "✏️ Корректировка",
+};
+
 export default function AdminPage() {
   const [, setLocation] = useLocation();
   const { data: user, error } = useGetMe();
   const { data: stats, isLoading } = useAdminGetStats();
+  const { data: logs } = useAdminGetLogs();
 
   useEffect(() => {
     if (error) {
@@ -21,6 +31,8 @@ export default function AdminPage() {
       setLocation("/dashboard");
     }
   }, [user, setLocation]);
+
+  const recentLogs = logs?.slice(0, 7) ?? [];
 
   return (
     <div className="min-h-screen pb-24">
@@ -95,14 +107,47 @@ export default function AdminPage() {
 
           <button
             data-testid="button-admin-activity"
-            onClick={() => setLocation("/admin/users")}
+            onClick={() => setLocation("/admin/activity")}
             className="w-full bg-card border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:bg-card/80 transition-colors"
           >
             <Activity className="w-5 h-5 text-primary" />
-            <span className="flex-1 text-left text-sm font-medium">Активность</span>
+            <span className="flex-1 text-left text-sm font-medium">Вся активность</span>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
+
+        {/* Recent activity preview */}
+        {recentLogs.length > 0 && (
+          <div className="bg-card border border-border rounded-xl p-4 space-y-2">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Последние списания</p>
+              <button
+                onClick={() => setLocation("/admin/activity")}
+                className="text-xs text-primary"
+              >
+                Все →
+              </button>
+            </div>
+            {recentLogs.map((log) => (
+              <div key={log.id} className="flex items-start justify-between gap-2 py-1.5 border-b border-border last:border-0">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-sm text-foreground">{ACTION_LABELS[log.action] ?? log.action}</span>
+                    {log.guestName && (
+                      <span className="text-xs text-muted-foreground truncate">— {log.guestName}</span>
+                    )}
+                  </div>
+                  {log.staffName && (
+                    <p className="text-xs text-muted-foreground">Сотрудник: {log.staffName}</p>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                  {new Date(log.createdAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

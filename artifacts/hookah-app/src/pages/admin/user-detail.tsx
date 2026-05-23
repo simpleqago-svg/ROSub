@@ -8,6 +8,7 @@ import {
   useAdminUseElectric,
   useAdminGetUserLogs,
   useGetSubscriptionPlans,
+  useGetMe,
   getAdminGetUserQueryKey,
   getAdminGetUsersQueryKey,
   getAdminGetStatsQueryKey,
@@ -18,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Save, Plus } from "lucide-react";
+import { Save, Plus, Lock } from "lucide-react";
 
 const ACTION_LABELS: Record<string, string> = {
   hookah: "🌿 Кальян",
@@ -35,10 +36,13 @@ export default function AdminUserDetailPage() {
   const userId = Number(params.userId);
   const queryClient = useQueryClient();
 
+  const { data: me } = useGetMe();
+  const isSuperAdmin = me?.role === "admin";
+
   const { data: user, isLoading } = useAdminGetUser(userId, {
     query: { enabled: !!userId, queryKey: getAdminGetUserQueryKey(userId) },
   });
-  const { data: plans } = useGetSubscriptionPlans();
+  const { data: plans, isLoading: plansLoading } = useGetSubscriptionPlans();
   const { data: logs } = useAdminGetUserLogs(userId, {
     query: { enabled: !!userId, queryKey: getAdminGetUserLogsQueryKey(userId) },
   });
@@ -54,7 +58,7 @@ export default function AdminUserDetailPage() {
   const [hookahsRemaining, setHookahsRemaining] = useState<number | "">("");
   const [fruitRemaining, setFruitRemaining] = useState<number | "">("");
   const [electricAvailable, setElectricAvailable] = useState(false);
-  const [cheapAvailable, setCheapAvailable] = useState(true);
+  const [cheapAvailable, setCheapAvailable] = useState(false);
   const [note, setNote] = useState("");
   const [selectedPlanId, setSelectedPlanId] = useState<number | "">("");
   const [activateMode, setActivateMode] = useState(false);
@@ -107,9 +111,14 @@ export default function AdminUserDetailPage() {
         onSuccess: () => {
           toast({ title: "Подписка активирована" });
           setActivateMode(false);
+          setNote("");
+          setSelectedPlanId("");
           invalidate();
         },
-        onError: () => toast({ title: "Ошибка", variant: "destructive" }),
+        onError: (e) => {
+          const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error ?? "Ошибка";
+          toast({ title: "Ошибка", description: msg, variant: "destructive" });
+        },
       }
     );
   };
@@ -139,6 +148,7 @@ export default function AdminUserDetailPage() {
     return (
       <div className="p-4 space-y-4">
         <Skeleton className="h-20 w-full rounded-xl" />
+        <Skeleton className="h-36 w-full rounded-xl" />
         <Skeleton className="h-48 w-full rounded-xl" />
       </div>
     );
@@ -200,8 +210,14 @@ export default function AdminUserDetailPage() {
               <div>
                 <p className="text-xs text-muted-foreground">Подписка</p>
                 <p className="font-bold text-primary">{sub.plan.nameRu}</p>
+                {sub.activatedAt && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    с {new Date(sub.activatedAt).toLocaleDateString("ru-RU")}
+                    {sub.expiresAt && ` по ${new Date(sub.expiresAt).toLocaleDateString("ru-RU")}`}
+                  </p>
+                )}
               </div>
-              {!editMode && (
+              {isSuperAdmin && !editMode && (
                 <button
                   data-testid="button-edit-subscription"
                   onClick={openEdit}
@@ -212,7 +228,7 @@ export default function AdminUserDetailPage() {
               )}
             </div>
 
-            {editMode ? (
+            {editMode && isSuperAdmin ? (
               <div className="space-y-3 pt-2 border-t border-border">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -307,9 +323,16 @@ export default function AdminUserDetailPage() {
                   </div>
                   <div className={`bg-background rounded-lg px-3 py-2 ${sub.cheapHookahAvailable ? "border border-primary/20" : ""}`}>
                     <p className="text-xs text-muted-foreground">350 RSD кальян</p>
-                    <p className={`font-bold ${sub.cheapHookahAvailable ? "text-primary" : "text-muted-foreground"}`}>
-                      {sub.cheapHookahAvailable ? "Доступен" : "Использован"}
-                    </p>
+                    {!sub.cheapHookahAvailable && sub.hookahsRemaining > 0 ? (
+                      <div className="flex items-center gap-1">
+                        <Lock className="w-3 h-3 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">В конце подписки</p>
+                      </div>
+                    ) : (
+                      <p className={`font-bold ${sub.cheapHookahAvailable ? "text-primary" : "text-muted-foreground"}`}>
+                        {sub.cheapHookahAvailable ? "Доступен" : "Использован"}
+                      </p>
+                    )}
                   </div>
                   <div className={`bg-background rounded-lg px-3 py-2 ${sub.electricAvailable ? "border border-primary/20" : ""}`}>
                     <p className="text-xs text-muted-foreground">Электронная чаша</p>
@@ -340,12 +363,15 @@ export default function AdminUserDetailPage() {
                   {sub.plan.bonusHookahFruit > 0 && (
                     <button
                       data-testid="button-use-fruit"
-                      onClick={() => doAction(useFruitMutation, "Фрукт списан", () => sub.fruitHookahsRemaining <= 0 ? "Фруктовые закончились" : null)}
-                      disabled={isPending || sub.fruitHookahsRemaining <= 0}
+                      onClick={() => doAction(useFruitMutation, "Фрукт списан", () =>
+                        sub.fruitHookahsRemaining <= 0 ? "Фруктовые закончились" :
+                        sub.hookahsRemaining <= 0 ? "Кальяны закончились" : null
+                      )}
+                      disabled={isPending || sub.fruitHookahsRemaining <= 0 || sub.hookahsRemaining <= 0}
                       className="w-full bg-amber-600 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
                     >
-                      🍉 Списать фрукт
-                      {sub.fruitHookahsRemaining <= 0 ? " (нет)" : ` (осталось ${sub.fruitHookahsRemaining})`}
+                      🍉 Фрукт (−1 кальян и −1 фруктовый)
+                      {sub.fruitHookahsRemaining <= 0 ? " (нет)" : ` (ост. ${sub.fruitHookahsRemaining})`}
                     </button>
                   )}
                   <div className="grid grid-cols-2 gap-2">
@@ -355,7 +381,7 @@ export default function AdminUserDetailPage() {
                       disabled={isPending || !sub.cheapHookahAvailable}
                       className="bg-zinc-700 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
                     >
-                      💰 350 RSD кальян
+                      💰 350 RSD
                     </button>
                     <button
                       data-testid="button-use-electric"
@@ -374,56 +400,64 @@ export default function AdminUserDetailPage() {
           <div className="bg-card border border-border rounded-xl p-4">
             <p className="text-sm text-muted-foreground mb-3">Нет активной подписки</p>
 
-            {activateMode ? (
-              <div className="space-y-3">
-                <select
-                  data-testid="select-plan"
-                  value={selectedPlanId}
-                  onChange={(e) => setSelectedPlanId(e.target.value === "" ? "" : Number(e.target.value))}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="">Выберите план...</option>
-                  {plans?.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nameRu} — {p.priceRsd.toLocaleString("ru-RU")} RSD
-                    </option>
-                  ))}
-                </select>
-                <textarea
-                  data-testid="input-activate-note"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={2}
-                  placeholder="Заметка (необязательно)"
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-                />
-                <div className="flex gap-2">
-                  <button
-                    data-testid="button-confirm-activate"
-                    onClick={handleActivate}
-                    disabled={!selectedPlanId || activateMutation.isPending}
-                    className="flex-1 bg-primary text-primary-foreground rounded-lg py-2.5 text-sm font-medium disabled:opacity-60"
+            {isSuperAdmin ? (
+              activateMode ? (
+                <div className="space-y-3">
+                  <select
+                    data-testid="select-plan"
+                    value={selectedPlanId}
+                    onChange={(e) => setSelectedPlanId(e.target.value === "" ? "" : Number(e.target.value))}
+                    disabled={plansLoading}
+                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60"
                   >
-                    {activateMutation.isPending ? "Активируем..." : "Активировать"}
-                  </button>
-                  <button
-                    data-testid="button-cancel-activate"
-                    onClick={() => setActivateMode(false)}
-                    className="px-4 bg-muted text-muted-foreground rounded-lg py-2.5 text-sm"
-                  >
-                    Отмена
-                  </button>
+                    <option value="">{plansLoading ? "Загрузка планов..." : "Выберите план..."}</option>
+                    {plans?.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nameRu} — {p.priceRsd.toLocaleString("ru-RU")} RSD
+                      </option>
+                    ))}
+                  </select>
+                  <textarea
+                    data-testid="input-activate-note"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    rows={2}
+                    placeholder="Заметка (необязательно)"
+                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      data-testid="button-confirm-activate"
+                      onClick={handleActivate}
+                      disabled={!selectedPlanId || activateMutation.isPending || plansLoading}
+                      className="flex-1 bg-primary text-primary-foreground rounded-lg py-2.5 text-sm font-medium disabled:opacity-60"
+                    >
+                      {activateMutation.isPending ? "Активируем..." : "Активировать"}
+                    </button>
+                    <button
+                      data-testid="button-cancel-activate"
+                      onClick={() => { setActivateMode(false); setSelectedPlanId(""); setNote(""); }}
+                      className="px-4 bg-muted text-muted-foreground rounded-lg py-2.5 text-sm"
+                    >
+                      Отмена
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <button
+                  data-testid="button-activate-subscription"
+                  onClick={() => setActivateMode(true)}
+                  className="flex items-center gap-2 bg-primary text-primary-foreground rounded-lg px-4 py-2.5 text-sm font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  Активировать подписку
+                </button>
+              )
             ) : (
-              <button
-                data-testid="button-activate-subscription"
-                onClick={() => setActivateMode(true)}
-                className="flex items-center gap-2 bg-primary text-primary-foreground rounded-lg px-4 py-2.5 text-sm font-medium"
-              >
-                <Plus className="w-4 h-4" />
-                Активировать подписку
-              </button>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Lock className="w-3.5 h-3.5" />
+                Только старший персонал может активировать подписки
+              </div>
             )}
           </div>
         )}
@@ -435,11 +469,13 @@ export default function AdminUserDetailPage() {
             <div className="space-y-2">
               {logs.map((log) => (
                 <div key={log.id} className="flex items-start justify-between gap-2 py-1.5 border-b border-border last:border-0">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm text-foreground">{ACTION_LABELS[log.action] ?? log.action}</p>
-                    <p className="text-xs text-muted-foreground">{log.description}</p>
+                    {log.staffName && (
+                      <p className="text-xs text-muted-foreground">Сотрудник: {log.staffName}</p>
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground whitespace-nowrap">
+                  <p className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
                     {new Date(log.createdAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>

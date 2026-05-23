@@ -11,6 +11,7 @@ import AdminPage from "@/pages/admin/index";
 import AdminUsersPage from "@/pages/admin/users";
 import AdminUserDetailPage from "@/pages/admin/user-detail";
 import AdminScanPage from "@/pages/admin/scan";
+import AdminActivityPage from "@/pages/admin/activity";
 import BottomNav from "@/components/bottom-nav";
 import { useLocation } from "wouter";
 
@@ -41,6 +42,7 @@ function AppRoutes() {
         <Route path="/admin/users" component={AdminUsersPage} />
         <Route path="/admin/users/:userId" component={AdminUserDetailPage} />
         <Route path="/admin/scan" component={AdminScanPage} />
+        <Route path="/admin/activity" component={AdminActivityPage} />
         <Route component={NotFound} />
       </Switch>
       {showNav && <BottomNav />}

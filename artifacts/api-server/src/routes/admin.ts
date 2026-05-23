@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, subscriptionPlansTable, userSubscriptionsTable, actionLogsTable } from "@workspace/db";
-import { eq, and, count, sum, desc } from "drizzle-orm";
-import { requireAuth, requireAdmin } from "../lib/auth";
+import { eq, and, count, sum, desc, aliasedTable } from "drizzle-orm";
+import { requireAuth, requireAdmin, requireSuperAdmin } from "../lib/auth";
 import {
   AdminGetUsersResponse,
   AdminGetUserParams,
@@ -17,6 +17,7 @@ import {
   AdminGetUserLogsParams,
   AdminGetUserLogsResponse,
   AdminGetStatsResponse,
+  AdminGetLogsResponse,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -39,8 +40,42 @@ function buildSubDetail(sub: typeof userSubscriptionsTable.$inferSelect, plan: t
   };
 }
 
-async function logAction(staffId: number, guestId: number, action: string, description: string) {
-  await db.insert(actionLogsTable).values({ staffId, guestId, action, description });
+const staffAlias = aliasedTable(usersTable, "staff_user");
+const guestAlias = aliasedTable(usersTable, "guest_user");
+
+async function logAction(staffId: number, staffName: string, guestId: number, action: string, description: string) {
+  await db.insert(actionLogsTable).values({ staffId, guestId, action, description: `[${staffName}] ${description}` });
+}
+
+async function getLogsWithNames(where?: Parameters<typeof db.select>[0]) {
+  const rows = await db
+    .select({
+      id: actionLogsTable.id,
+      staffId: actionLogsTable.staffId,
+      guestId: actionLogsTable.guestId,
+      action: actionLogsTable.action,
+      description: actionLogsTable.description,
+      createdAt: actionLogsTable.createdAt,
+      staffFirstName: staffAlias.firstName,
+      staffLastName: staffAlias.lastName,
+      guestFirstName: guestAlias.firstName,
+      guestLastName: guestAlias.lastName,
+    })
+    .from(actionLogsTable)
+    .leftJoin(staffAlias, eq(actionLogsTable.staffId, staffAlias.id))
+    .leftJoin(guestAlias, eq(actionLogsTable.guestId, guestAlias.id))
+    .orderBy(desc(actionLogsTable.createdAt))
+    .limit(100);
+  return rows.map((l) => ({
+    id: l.id,
+    staffId: l.staffId,
+    guestId: l.guestId,
+    staffName: l.staffFirstName ? `${l.staffFirstName}${l.staffLastName ? " " + l.staffLastName : ""}` : null,
+    guestName: l.guestFirstName ? `${l.guestFirstName}${l.guestLastName ? " " + l.guestLastName : ""}` : null,
+    action: l.action,
+    description: l.description,
+    createdAt: l.createdAt.toISOString(),
+  }));
 }
 
 function buildUserView(user: typeof usersTable.$inferSelect, row?: { user_subscriptions: typeof userSubscriptionsTable.$inferSelect; subscription_plans: typeof subscriptionPlansTable.$inferSelect | null } | null) {
@@ -53,7 +88,7 @@ function buildUserView(user: typeof usersTable.$inferSelect, row?: { user_subscr
     role: user.role,
     note: user.note ?? null,
     createdAt: user.createdAt.toISOString(),
-    subscription: row ? buildSubDetail(row.user_subscriptions, row.subscription_plans!) : undefined,
+    subscription: row && row.subscription_plans ? buildSubDetail(row.user_subscriptions, row.subscription_plans) : undefined,
   };
 }
 
@@ -90,7 +125,7 @@ router.get("/admin/users/:userId", requireAuth, requireAdmin, async (req, res): 
   res.json(AdminGetUserResponse.parse(buildUserView(user, rows[0])));
 });
 
-router.post("/admin/users/:userId/subscription", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+router.post("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
   const params = AdminActivateSubscriptionParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
@@ -113,19 +148,20 @@ router.post("/admin/users/:userId/subscription", requireAuth, requireAdmin, asyn
       hookahsRemaining: plan.hookahCount,
       fruitHookahsRemaining: plan.bonusHookahFruit,
       electricAvailable: plan.bonusElectric > 0,
-      cheapHookahAvailable: plan.bonusHookahCheap > 0,
+      cheapHookahAvailable: false,
       note: body.data.note ?? null,
       active: true,
     })
     .returning();
 
   const staff = (req as unknown as AuthedReq).user;
-  await logAction(staff.id, params.data.userId, "activate", `Активирована подписка: ${plan.nameRu}`);
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "activate", `Активирована подписка: ${plan.nameRu}`);
 
   res.json(buildSubDetail(sub, plan));
 });
 
-router.patch("/admin/users/:userId/subscription", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+router.patch("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
   const params = AdminUpdateSubscriptionParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
@@ -154,7 +190,8 @@ router.patch("/admin/users/:userId/subscription", requireAuth, requireAdmin, asy
     .returning();
 
   const staff = (req as unknown as AuthedReq).user;
-  await logAction(staff.id, params.data.userId, "manual_adjust", "Ручная корректировка баланса");
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "manual_adjust", "Ручная корректировка баланса");
 
   const row = rows[0];
   res.json(buildSubDetail(updated, row.subscription_plans!));
@@ -174,19 +211,28 @@ router.post("/admin/users/:userId/use-hookah", requireAuth, requireAdmin, async 
 
   const row = rows[0];
   const sub = row.user_subscriptions;
+  const plan = row.subscription_plans!;
 
   if (sub.hookahsRemaining <= 0) { res.status(400).json({ error: "No hookahs remaining" }); return; }
 
+  const newRemaining = sub.hookahsRemaining - 1;
+  const unlockCheap = newRemaining === 0 && plan.bonusHookahCheap > 0;
+
   const [updated] = await db
     .update(userSubscriptionsTable)
-    .set({ hookahsRemaining: sub.hookahsRemaining - 1, totalHookahsUsed: sub.totalHookahsUsed + 1 })
+    .set({
+      hookahsRemaining: newRemaining,
+      totalHookahsUsed: sub.totalHookahsUsed + 1,
+      ...(unlockCheap ? { cheapHookahAvailable: true } : {}),
+    })
     .where(eq(userSubscriptionsTable.id, sub.id))
     .returning();
 
   const staff = (req as unknown as AuthedReq).user;
-  await logAction(staff.id, params.data.userId, "hookah", `Кальян списан. Осталось: ${updated.hookahsRemaining}`);
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "hookah", `Кальян списан. Осталось: ${updated.hookahsRemaining}${unlockCheap ? ". Открыт кальян за 350 RSD!" : ""}`);
 
-  res.json(buildSubDetail(updated, row.subscription_plans!));
+  res.json(buildSubDetail(updated, plan));
 });
 
 router.post("/admin/users/:userId/use-fruit", requireAuth, requireAdmin, async (req, res): Promise<void> => {
@@ -203,19 +249,31 @@ router.post("/admin/users/:userId/use-fruit", requireAuth, requireAdmin, async (
 
   const row = rows[0];
   const sub = row.user_subscriptions;
+  const plan = row.subscription_plans!;
 
   if (sub.fruitHookahsRemaining <= 0) { res.status(400).json({ error: "No fruit hookahs remaining" }); return; }
+  if (sub.hookahsRemaining <= 0) { res.status(400).json({ error: "No hookahs remaining" }); return; }
+
+  const newFruitRemaining = sub.fruitHookahsRemaining - 1;
+  const newHookahsRemaining = sub.hookahsRemaining - 1;
+  const unlockCheap = newHookahsRemaining === 0 && plan.bonusHookahCheap > 0;
 
   const [updated] = await db
     .update(userSubscriptionsTable)
-    .set({ fruitHookahsRemaining: sub.fruitHookahsRemaining - 1 })
+    .set({
+      fruitHookahsRemaining: newFruitRemaining,
+      hookahsRemaining: newHookahsRemaining,
+      totalHookahsUsed: sub.totalHookahsUsed + 1,
+      ...(unlockCheap ? { cheapHookahAvailable: true } : {}),
+    })
     .where(eq(userSubscriptionsTable.id, sub.id))
     .returning();
 
   const staff = (req as unknown as AuthedReq).user;
-  await logAction(staff.id, params.data.userId, "fruit", `Фрукт списан. Осталось: ${updated.fruitHookahsRemaining}`);
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "fruit", `Фрукт списан. Осталось фруктовых: ${updated.fruitHookahsRemaining}, кальянов: ${updated.hookahsRemaining}`);
 
-  res.json(buildSubDetail(updated, row.subscription_plans!));
+  res.json(buildSubDetail(updated, plan));
 });
 
 router.post("/admin/users/:userId/use-cheap", requireAuth, requireAdmin, async (req, res): Promise<void> => {
@@ -242,7 +300,8 @@ router.post("/admin/users/:userId/use-cheap", requireAuth, requireAdmin, async (
     .returning();
 
   const staff = (req as unknown as AuthedReq).user;
-  await logAction(staff.id, params.data.userId, "cheap", "Кальян за 350 RSD списан");
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "cheap", "Кальян за 350 RSD списан");
 
   res.json(buildSubDetail(updated, row.subscription_plans!));
 });
@@ -271,7 +330,8 @@ router.post("/admin/users/:userId/use-electric", requireAuth, requireAdmin, asyn
     .returning();
 
   const staff = (req as unknown as AuthedReq).user;
-  await logAction(staff.id, params.data.userId, "electric", "Электронная чаша списана");
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "electric", "Электронная чаша списана");
 
   res.json(buildSubDetail(updated, row.subscription_plans!));
 });
@@ -280,23 +340,15 @@ router.get("/admin/users/:userId/logs", requireAuth, requireAdmin, async (req, r
   const params = AdminGetUserLogsParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
-  const logs = await db
-    .select()
-    .from(actionLogsTable)
-    .where(eq(actionLogsTable.guestId, params.data.userId))
-    .orderBy(desc(actionLogsTable.createdAt))
-    .limit(50);
+  const allLogs = await getLogsWithNames();
+  const filtered = allLogs.filter((l) => l.guestId === params.data.userId).slice(0, 50);
 
-  res.json(AdminGetUserLogsResponse.parse(
-    logs.map((l) => ({
-      id: l.id,
-      staffId: l.staffId,
-      guestId: l.guestId,
-      action: l.action,
-      description: l.description,
-      createdAt: l.createdAt.toISOString(),
-    }))
-  ));
+  res.json(AdminGetUserLogsResponse.parse(filtered));
+});
+
+router.get("/admin/logs", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const logs = await getLogsWithNames();
+  res.json(AdminGetLogsResponse.parse(logs.slice(0, 50)));
 });
 
 router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<void> => {
