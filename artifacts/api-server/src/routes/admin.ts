@@ -140,6 +140,9 @@ router.post("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin,
     .set({ active: false })
     .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)));
 
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+
   const [sub] = await db
     .insert(userSubscriptionsTable)
     .values({
@@ -151,6 +154,7 @@ router.post("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin,
       cheapHookahAvailable: false,
       note: body.data.note ?? null,
       active: true,
+      expiresAt,
     })
     .returning();
 
