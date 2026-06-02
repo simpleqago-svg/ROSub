@@ -411,4 +411,27 @@ router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<
   }));
 });
 
+// TEMPORARY: one-shot admin promotion — remove after use
+router.post("/admin/set-admin", async (req, res): Promise<void> => {
+  const { secret, telegramId } = req.body as { secret?: string; telegramId?: number };
+  if (!secret || secret !== process.env.SESSION_SECRET) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  if (!telegramId) {
+    res.status(400).json({ error: "telegramId required" });
+    return;
+  }
+  const [user] = await db
+    .update(usersTable)
+    .set({ role: "admin" })
+    .where(eq(usersTable.telegramId, telegramId))
+    .returning({ id: usersTable.id, telegramId: usersTable.telegramId, role: usersTable.role });
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+  res.json({ ok: true, ...user });
+});
+
 export default router;
