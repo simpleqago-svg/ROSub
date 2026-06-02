@@ -376,23 +376,38 @@ router.get("/admin/logs", requireAuth, requireAdmin, async (req, res): Promise<v
 router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const [totalUsersRow] = await db.select({ count: count() }).from(usersTable);
   const [activeSubsRow] = await db.select({ count: count() }).from(userSubscriptionsTable).where(eq(userSubscriptionsTable.active, true));
-  const [hookahsUsedRow] = await db.select({ total: sum(userSubscriptionsTable.totalHookahsUsed) }).from(userSubscriptionsTable);
+
+  // All-time counts from action_logs (never deleted)
+  const actionCounts = await db
+    .select({ action: actionLogsTable.action, total: count() })
+    .from(actionLogsTable)
+    .groupBy(actionLogsTable.action);
+
+  const byAction = (a: string) => actionCounts.find((r) => r.action === a)?.total ?? 0;
 
   const plans = await db.select().from(subscriptionPlansTable);
   const subscriptionsByPlan = await Promise.all(
     plans.map(async (plan) => {
-      const [row] = await db
+      const [activeRow] = await db
         .select({ count: count() })
         .from(userSubscriptionsTable)
         .where(and(eq(userSubscriptionsTable.planId, plan.id), eq(userSubscriptionsTable.active, true)));
-      return { planName: plan.nameRu, count: row.count };
+      const [totalRow] = await db
+        .select({ count: count() })
+        .from(userSubscriptionsTable)
+        .where(eq(userSubscriptionsTable.planId, plan.id));
+      return { planName: plan.nameRu, activeCount: activeRow.count, totalEver: totalRow.count };
     })
   );
 
   res.json(AdminGetStatsResponse.parse({
     totalUsers: totalUsersRow.count,
     activeSubscriptions: activeSubsRow.count,
-    totalHookahsUsed: Number(hookahsUsedRow.total ?? 0),
+    totalHookahsUsed: byAction("hookah") + byAction("fruit"),
+    totalFruitUsed: byAction("fruit"),
+    totalCheapUsed: byAction("cheap"),
+    totalElectricUsed: byAction("electric"),
+    totalActivations: byAction("activate"),
     subscriptionsByPlan,
   }));
 });

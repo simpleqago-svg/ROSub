@@ -582,7 +582,7 @@ components:
 
     AdminStats:
       type: object
-      required: [totalUsers, activeSubscriptions, totalHookahsUsed]
+      required: [totalUsers, activeSubscriptions, totalHookahsUsed, totalFruitUsed, totalCheapUsed, totalElectricUsed, totalActivations]
       properties:
         totalUsers:
           type: integer
@@ -590,13 +590,23 @@ components:
           type: integer
         totalHookahsUsed:
           type: integer
+        totalFruitUsed:
+          type: integer
+        totalCheapUsed:
+          type: integer
+        totalElectricUsed:
+          type: integer
+        totalActivations:
+          type: integer
         subscriptionsByPlan:
           type: array
           items:
             type: object
-            required: [planName, count]
+            required: [planName, activeCount, totalEver]
             properties:
               planName:
                 type: string
-              count:
+              activeCount:
+                type: integer
+              totalEver:
                 type: integer

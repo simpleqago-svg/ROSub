@@ -45,12 +45,13 @@ export default function AdminPage() {
         {/* Stats — clickable cards */}
         {isLoading ? (
           <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 rounded-xl" />
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 rounded-xl" />
             ))}
           </div>
         ) : stats ? (
           <>
+            {/* Guests & subscriptions */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 data-testid="button-stat-users"
@@ -68,23 +69,48 @@ export default function AdminPage() {
               >
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Активных подписок</p>
                 <p data-testid="text-active-subs" className="text-3xl font-bold text-primary mt-1">{stats.activeSubscriptions}</p>
-                <p className="text-xs text-primary mt-1">Список →</p>
+                <p className="text-xs text-muted-foreground mt-1">Всего: {stats.totalActivations}</p>
               </button>
-              <div className="bg-card border border-border rounded-xl p-4 col-span-2">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Кальянов выкурено (всего)</p>
-                <p data-testid="text-hookahs-used" className="text-3xl font-bold text-foreground mt-1">{stats.totalHookahsUsed}</p>
+            </div>
+
+            {/* All-time usage counters */}
+            <div className="bg-card border border-border rounded-xl p-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">Списания за всё время</p>
+              <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">🌿 Кальяны</span>
+                  <span data-testid="text-hookahs-used" className="text-sm font-bold text-foreground">{stats.totalHookahsUsed}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">🍉 Фруктовых</span>
+                  <span className="text-sm font-bold text-foreground">{stats.totalFruitUsed}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">💰 350 RSD</span>
+                  <span className="text-sm font-bold text-foreground">{stats.totalCheapUsed}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">⚡ Эл. чаш</span>
+                  <span className="text-sm font-bold text-foreground">{stats.totalElectricUsed}</span>
+                </div>
               </div>
             </div>
 
+            {/* Subscriptions by plan */}
             {stats.subscriptionsByPlan && stats.subscriptionsByPlan.length > 0 && (
-              <div className="bg-card border border-border rounded-xl p-4 space-y-2">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">По уровням</p>
-                {stats.subscriptionsByPlan.map((item) => (
-                  <div key={item.planName} className="flex items-center justify-between">
-                    <span className="text-sm text-foreground">{item.planName}</span>
-                    <span className="text-sm font-semibold text-primary">{item.count}</span>
-                  </div>
-                ))}
+              <div className="bg-card border border-border rounded-xl p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">По уровням подписок</p>
+                <div className="space-y-2">
+                  {stats.subscriptionsByPlan.map((item) => (
+                    <div key={item.planName} className="flex items-center justify-between text-sm">
+                      <span className="text-foreground">{item.planName}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-muted-foreground text-xs">Всего: {item.totalEver}</span>
+                        <span className="font-semibold text-primary min-w-[2rem] text-right">{item.activeCount} акт.</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </>

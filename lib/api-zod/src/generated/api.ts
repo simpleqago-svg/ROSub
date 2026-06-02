@@ -511,9 +511,14 @@ export const AdminGetStatsResponse = zod.object({
   "totalUsers": zod.number(),
   "activeSubscriptions": zod.number(),
   "totalHookahsUsed": zod.number(),
+  "totalFruitUsed": zod.number(),
+  "totalCheapUsed": zod.number(),
+  "totalElectricUsed": zod.number(),
+  "totalActivations": zod.number(),
   "subscriptionsByPlan": zod.array(zod.object({
   "planName": zod.string(),
-  "count": zod.number()
+  "activeCount": zod.number(),
+  "totalEver": zod.number()
 })).optional()
 })
 

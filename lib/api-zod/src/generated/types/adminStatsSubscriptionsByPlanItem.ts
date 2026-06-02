@@ -8,5 +8,6 @@
 
 export type AdminStatsSubscriptionsByPlanItem = {
   planName: string;
-  count: number;
+  activeCount: number;
+  totalEver: number;
 };

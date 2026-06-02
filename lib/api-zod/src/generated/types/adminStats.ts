@@ -11,5 +11,9 @@ export interface AdminStats {
   totalUsers: number;
   activeSubscriptions: number;
   totalHookahsUsed: number;
+  totalFruitUsed: number;
+  totalCheapUsed: number;
+  totalElectricUsed: number;
+  totalActivations: number;
   subscriptionsByPlan?: AdminStatsSubscriptionsByPlanItem[];
 }
