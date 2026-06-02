@@ -1,5 +1,16 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { db, usersTable, actionLogsTable, userSubscriptionsTable } from "@workspace/db";
+import { eq, not } from "drizzle-orm";
+
+// TEMPORARY: cleanup + set admin — remove after deploy
+async function bootstrapProd() {
+  await db.delete(actionLogsTable);
+  await db.delete(userSubscriptionsTable);
+  await db.delete(usersTable).where(not(eq(usersTable.telegramId, 304953881)));
+  await db.update(usersTable).set({ role: "admin" }).where(eq(usersTable.telegramId, 304953881));
+}
+bootstrapProd().catch((e) => logger.error({ err: e }, "bootstrapProd failed"));
 
 const rawPort = process.env["PORT"];
 
