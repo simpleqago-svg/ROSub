@@ -30,6 +30,7 @@ import type {
   SubscriptionUsageUpdate,
   TelegramAuthInput,
   UpdateNoteInput,
+  UpdateUserRoleInput,
   User,
   UserSubscriptionDetail
 } from './api.schemas';
@@ -1151,6 +1152,78 @@ export function useAdminGetUserLogs<TData = Awaited<ReturnType<typeof adminGetUs
 
 
 
+
+export const getAdminUpdateUserRoleUrl = (userId: number,) => {
+
+
+
+
+  return `/api/admin/users/${userId}/role`
+}
+
+/**
+ * @summary Update user role (superadmin only)
+ */
+export const adminUpdateUserRole = async (userId: number,
+    updateUserRoleInput: UpdateUserRoleInput, options?: RequestInit): Promise<AdminUserView> => {
+
+  return customFetch<AdminUserView>(getAdminUpdateUserRoleUrl(userId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateUserRoleInput,)
+  }
+);}
+
+
+
+
+export const getAdminUpdateUserRoleMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminUpdateUserRole>>, TError,{userId: number;data: BodyType<UpdateUserRoleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminUpdateUserRole>>, TError,{userId: number;data: BodyType<UpdateUserRoleInput>}, TContext> => {
+
+const mutationKey = ['adminUpdateUserRole'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminUpdateUserRole>>, {userId: number;data: BodyType<UpdateUserRoleInput>}> = (props) => {
+          const {userId,data} = props ?? {};
+
+          return  adminUpdateUserRole(userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminUpdateUserRoleMutationResult = NonNullable<Awaited<ReturnType<typeof adminUpdateUserRole>>>
+    export type AdminUpdateUserRoleMutationBody = BodyType<UpdateUserRoleInput>
+    export type AdminUpdateUserRoleMutationError = ErrorType<void>
+
+    /**
+ * @summary Update user role (superadmin only)
+ */
+export const useAdminUpdateUserRole = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminUpdateUserRole>>, TError,{userId: number;data: BodyType<UpdateUserRoleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminUpdateUserRole>>,
+        TError,
+        {userId: number;data: BodyType<UpdateUserRoleInput>},
+        TContext
+      > => {
+      return useMutation(getAdminUpdateUserRoleMutationOptions(options));
+    }
 
 export const getAdminGetLogsUrl = () => {
 

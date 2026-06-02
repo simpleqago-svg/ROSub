@@ -442,6 +442,53 @@ export const AdminGetUserLogsResponse = zod.array(AdminGetUserLogsResponseItem)
 
 
 /**
+ * @summary Update user role (superadmin only)
+ */
+export const AdminUpdateUserRoleParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const AdminUpdateUserRoleBody = zod.object({
+  "role": zod.enum(['user', 'staff', 'admin'])
+})
+
+export const AdminUpdateUserRoleResponse = zod.object({
+  "id": zod.number(),
+  "telegramId": zod.number(),
+  "firstName": zod.string(),
+  "lastName": zod.string().nullish(),
+  "username": zod.string().nullish(),
+  "role": zod.string(),
+  "note": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "subscription": zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "planId": zod.number(),
+  "plan": zod.object({
+  "id": zod.number(),
+  "nameRu": zod.string(),
+  "nameRs": zod.string(),
+  "level": zod.number(),
+  "hookahCount": zod.number(),
+  "priceRsd": zod.number(),
+  "pricePerHookah": zod.number(),
+  "bonusHookahFruit": zod.number(),
+  "bonusElectric": zod.number(),
+  "bonusHookahCheap": zod.number()
+}),
+  "hookahsRemaining": zod.number(),
+  "fruitHookahsRemaining": zod.number(),
+  "electricAvailable": zod.boolean(),
+  "cheapHookahAvailable": zod.boolean(),
+  "activatedAt": zod.string(),
+  "expiresAt": zod.string().nullable(),
+  "note": zod.string().nullish()
+}).optional()
+})
+
+
+/**
  * @summary Get recent global activity logs (admin)
  */
 export const AdminGetLogsResponseItem = zod.object({

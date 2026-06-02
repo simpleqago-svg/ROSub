@@ -17,6 +17,8 @@ export * from './subscriptionPlan';
 export * from './subscriptionUsageUpdate';
 export * from './telegramAuthInput';
 export * from './updateNoteInput';
+export * from './updateUserRoleInput';
+export * from './updateUserRoleInputRole';
 export * from './user';
 export * from './userRole';
 export * from './userSubscriptionDetail';

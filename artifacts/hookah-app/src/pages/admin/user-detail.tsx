@@ -7,6 +7,7 @@ import {
   useAdminUseCheap,
   useAdminUseElectric,
   useAdminGetUserLogs,
+  useAdminUpdateUserRole,
   useGetSubscriptionPlans,
   useGetMe,
   getAdminGetUserQueryKey,
@@ -49,6 +50,7 @@ export default function AdminUserDetailPage() {
 
   const activateMutation = useAdminActivateSubscription();
   const updateMutation = useAdminUpdateSubscription();
+  const updateRoleMutation = useAdminUpdateUserRole();
   const useHookahMutation = useAdminUseHookah();
   const useFruitMutation = useAdminUseFruit();
   const useCheapMutation = useAdminUseCheap();
@@ -185,9 +187,35 @@ export default function AdminUserDetailPage() {
             <span className="text-muted-foreground">Telegram ID</span>
             <span className="text-foreground font-mono">{user.telegramId}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-muted-foreground">Роль</span>
-            <span className="text-foreground">{user.role}</span>
+            {isSuperAdmin ? (
+              <select
+                data-testid="select-user-role"
+                value={user.role}
+                disabled={updateRoleMutation.isPending}
+                onChange={(e) => {
+                  const role = e.target.value as "user" | "staff" | "admin";
+                  updateRoleMutation.mutate(
+                    { userId, data: { role } },
+                    {
+                      onSuccess: () => {
+                        toast({ title: "Роль обновлена", description: `Теперь: ${role}` });
+                        invalidate();
+                      },
+                      onError: () => toast({ title: "Ошибка", description: "Не удалось изменить роль", variant: "destructive" }),
+                    }
+                  );
+                }}
+                className="bg-background border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60"
+              >
+                <option value="user">Гость</option>
+                <option value="staff">Персонал</option>
+                <option value="admin">Администратор</option>
+              </select>
+            ) : (
+              <span className="text-foreground">{user.role}</span>
+            )}
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Регистрация</span>

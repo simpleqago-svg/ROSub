@@ -325,6 +325,37 @@ paths:
         "403":
           description: Forbidden
 
+  /admin/users/{userId}/role:
+    patch:
+      operationId: adminUpdateUserRole
+      tags: [admin]
+      summary: Update user role (superadmin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRoleInput"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserView"
+        "400":
+          description: Invalid role
+        "403":
+          description: Forbidden
+        "404":
+          description: User not found
+
   /admin/logs:
     get:
       operationId: adminGetLogs
@@ -496,6 +527,14 @@ components:
           type: ["boolean", "null"]
         note:
           type: ["string", "null"]
+
+    UpdateUserRoleInput:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [user, staff, admin]
 
     AdminUserView:
       type: object

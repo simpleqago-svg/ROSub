@@ -340,6 +340,24 @@ router.post("/admin/users/:userId/use-electric", requireAuth, requireAdmin, asyn
   res.json(buildSubDetail(updated, row.subscription_plans!));
 });
 
+router.patch("/admin/users/:userId/role", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
+  const params = AdminGetUserParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const { role } = req.body as { role?: string };
+  if (!role || !["user", "staff", "admin"].includes(role)) { res.status(400).json({ error: "Invalid role" }); return; }
+
+  const [user] = await db
+    .update(usersTable)
+    .set({ role: role as "user" | "staff" | "admin" })
+    .where(eq(usersTable.id, params.data.userId))
+    .returning();
+
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  res.json({ id: user.id, telegramId: user.telegramId.toString(), firstName: user.firstName, lastName: user.lastName ?? null, username: user.username ?? null, role: user.role, note: user.note ?? null, createdAt: user.createdAt.toISOString(), subscription: null });
+});
+
 router.get("/admin/users/:userId/logs", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const params = AdminGetUserLogsParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }

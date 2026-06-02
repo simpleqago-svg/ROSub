@@ -103,6 +103,19 @@ export interface SubscriptionUsageUpdate {
   note?: string | null;
 }
 
+export type UpdateUserRoleInputRole = typeof UpdateUserRoleInputRole[keyof typeof UpdateUserRoleInputRole];
+
+
+export const UpdateUserRoleInputRole = {
+  user: 'user',
+  staff: 'staff',
+  admin: 'admin',
+} as const;
+
+export interface UpdateUserRoleInput {
+  role: UpdateUserRoleInputRole;
+}
+
 export interface AdminUserView {
   id: number;
   telegramId: number;
