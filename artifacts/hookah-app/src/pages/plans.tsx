@@ -68,21 +68,21 @@ export default function PlansPage() {
                 </div>
               </div>
 
-              {/* Bonuses */}
+              {/* Features */}
               <div className="space-y-1.5">
-                <p className="text-xs text-white/50 uppercase tracking-wide">Бонусы</p>
-                <div className="flex flex-wrap gap-2">
+                {plan.bonusHookahFruit > 0 && (
+                  <div className="bg-white/10 rounded-xl px-3 py-2">
+                    <p className="text-xs text-white/60">Из них на фруктовой чаше</p>
+                    <p className="text-base font-semibold text-white">до {plan.bonusHookahFruit} шт <span className="text-xs font-normal text-white/50">(входят в общее количество)</span></p>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2 pt-0.5">
                   <span className="text-xs bg-white/10 text-white/80 px-2.5 py-1 rounded-full">
                     Кальян за 350 RSD после окончания
                   </span>
-                  {plan.bonusHookahFruit > 0 && (
-                    <span className="text-xs bg-white/15 text-white/80 px-2.5 py-1 rounded-full">
-                      +{plan.bonusHookahFruit} на фруктовой чаше
-                    </span>
-                  )}
                   {plan.bonusElectric > 0 && (
                     <span className="text-xs bg-yellow-400/20 text-yellow-300 px-2.5 py-1 rounded-full">
-                      +{plan.bonusElectric} электронная чаша
+                      Электронная чаша
                     </span>
                   )}
                 </div>

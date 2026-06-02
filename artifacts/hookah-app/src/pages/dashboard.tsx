@@ -181,7 +181,7 @@ export default function DashboardPage() {
                 <ProgressBar
                   remaining={sub.fruitHookahsRemaining}
                   total={sub.plan.bonusHookahFruit}
-                  label="На фруктовой чаше"
+                  label="На фруктовой чаше (из общего количества)"
                 />
               )}
             </div>
