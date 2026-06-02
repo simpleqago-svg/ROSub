@@ -412,14 +412,4 @@ router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<
   }));
 });
 
-// TEMPORARY: one-time bootstrap to set first admin. Remove after use.
-router.post("/admin/bootstrap", async (req, res): Promise<void> => {
-  const { secret, telegramId } = req.body as { secret?: string; telegramId?: number };
-  if (!secret || secret !== process.env.SESSION_SECRET) { res.status(403).json({ error: "Forbidden" }); return; }
-  if (!telegramId) { res.status(400).json({ error: "telegramId required" }); return; }
-  const [user] = await db.update(usersTable).set({ role: "admin" }).where(eq(usersTable.telegramId, Number(telegramId))).returning();
-  if (!user) { res.status(404).json({ error: "User not found" }); return; }
-  res.json({ ok: true, id: user.id, role: user.role });
-});
-
 export default router;
