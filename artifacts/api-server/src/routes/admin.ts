@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, subscriptionPlansTable, userSubscriptionsTable, actionLogsTable } from "@workspace/db";
 import { eq, and, count, sum, desc, aliasedTable } from "drizzle-orm";
-import { requireAuth, requireAdmin, requireSuperAdmin } from "../lib/auth";
+import { requireAuth, requireAdmin, requireSuperAdmin, getAuthedUser } from "../lib/auth";
 import {
   AdminGetUsersResponse,
   AdminGetUserParams,
@@ -22,7 +22,6 @@ import {
 
 const router: IRouter = Router();
 
-type AuthedReq = typeof import("express").request & { user: typeof usersTable.$inferSelect };
 
 function buildSubDetail(sub: typeof userSubscriptionsTable.$inferSelect, plan: typeof subscriptionPlansTable.$inferSelect) {
   return {
@@ -158,7 +157,7 @@ router.post("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin,
     })
     .returning();
 
-  const staff = (req as unknown as AuthedReq).user;
+  const staff = getAuthedUser(req);
   const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
   await logAction(staff.id, staffName, params.data.userId, "activate", `Активирована подписка: ${plan.nameRu}`);
 
@@ -193,7 +192,7 @@ router.patch("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin
     .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)))
     .returning();
 
-  const staff = (req as unknown as AuthedReq).user;
+  const staff = getAuthedUser(req);
   const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
   await logAction(staff.id, staffName, params.data.userId, "manual_adjust", "Ручная корректировка баланса");
 
@@ -232,7 +231,7 @@ router.post("/admin/users/:userId/use-hookah", requireAuth, requireAdmin, async 
     .where(eq(userSubscriptionsTable.id, sub.id))
     .returning();
 
-  const staff = (req as unknown as AuthedReq).user;
+  const staff = getAuthedUser(req);
   const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
   await logAction(staff.id, staffName, params.data.userId, "hookah", `Кальян списан. Осталось: ${updated.hookahsRemaining}${unlockCheap ? ". Открыт кальян за 350 RSD!" : ""}`);
 
@@ -273,7 +272,7 @@ router.post("/admin/users/:userId/use-fruit", requireAuth, requireAdmin, async (
     .where(eq(userSubscriptionsTable.id, sub.id))
     .returning();
 
-  const staff = (req as unknown as AuthedReq).user;
+  const staff = getAuthedUser(req);
   const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
   await logAction(staff.id, staffName, params.data.userId, "fruit", `Фрукт списан. Осталось фруктовых: ${updated.fruitHookahsRemaining}, кальянов: ${updated.hookahsRemaining}`);
 
@@ -303,7 +302,7 @@ router.post("/admin/users/:userId/use-cheap", requireAuth, requireAdmin, async (
     .where(eq(userSubscriptionsTable.id, sub.id))
     .returning();
 
-  const staff = (req as unknown as AuthedReq).user;
+  const staff = getAuthedUser(req);
   const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
   await logAction(staff.id, staffName, params.data.userId, "cheap", "Кальян за 350 RSD списан");
 
@@ -333,7 +332,7 @@ router.post("/admin/users/:userId/use-electric", requireAuth, requireAdmin, asyn
     .where(eq(userSubscriptionsTable.id, sub.id))
     .returning();
 
-  const staff = (req as unknown as AuthedReq).user;
+  const staff = getAuthedUser(req);
   const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
   await logAction(staff.id, staffName, params.data.userId, "electric", "Электронная чаша списана");
 

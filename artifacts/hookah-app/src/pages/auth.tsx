@@ -3,6 +3,19 @@ import { useLocation } from "wouter";
 import { useAuthTelegram } from "@workspace/api-client-react";
 import { toast } from "@/hooks/use-toast";
 
+interface TelegramUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+}
+
+function getTelegramUser(): TelegramUser | null {
+  const tg = (window as Window & { Telegram?: { WebApp?: { initDataUnsafe?: { user?: TelegramUser } } } }).Telegram;
+  return tg?.WebApp?.initDataUnsafe?.user ?? null;
+}
+
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(false);
@@ -11,7 +24,13 @@ export default function AuthPage() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const tgUser = (window as unknown as { Telegram?: { WebApp?: { initDataUnsafe?: { user?: { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string } } } } }).Telegram?.WebApp?.initDataUnsafe?.user;
+      const tgUser = getTelegramUser();
+
+      if (!tgUser && !import.meta.env.DEV) {
+        toast({ title: "Ошибка", description: "Откройте приложение через Telegram", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
 
       const userData = tgUser
         ? {
@@ -23,9 +42,9 @@ export default function AuthPage() {
           }
         : {
             telegramId: 100001,
-            firstName: "Гость",
+            firstName: "Гость (dev)",
             lastName: null,
-            username: "guest_user",
+            username: "dev_guest",
             photoUrl: null,
           };
 
@@ -50,11 +69,9 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background relative overflow-hidden">
-      {/* Ambient glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-sm space-y-8 relative z-10">
-        {/* Logo area */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 mb-2">
             <span className="text-4xl">🪔</span>
@@ -66,7 +83,6 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Login card */}
         <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
           <button
             data-testid="button-login-telegram"
