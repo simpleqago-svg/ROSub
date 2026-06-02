@@ -127,7 +127,6 @@ export default function DashboardPage() {
               data-testid="img-qr-code"
             />
           </div>
-          <p className="text-xs text-muted-foreground">ID: {user.id}</p>
         </div>
 
         {/* Subscription */}

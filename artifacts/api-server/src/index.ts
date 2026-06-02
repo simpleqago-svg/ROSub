@@ -1,20 +1,5 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { db, usersTable, actionLogsTable, userSubscriptionsTable } from "@workspace/db";
-import { sql, not, eq } from "drizzle-orm";
-
-// TEMPORARY: clean prod + ensure owner is admin — remove after first successful deploy
-async function ensureAdmin() {
-  await db.delete(actionLogsTable);
-  await db.delete(userSubscriptionsTable);
-  await db.delete(usersTable).where(not(eq(usersTable.telegramId, 304953881)));
-  await db.execute(sql`
-    INSERT INTO users (telegram_id, first_name, last_name, username, photo_url, role)
-    VALUES (304953881, 'Sima', NULL, 'simaneversleep', NULL, 'admin')
-    ON CONFLICT (telegram_id) DO UPDATE SET role = 'admin'
-  `);
-}
-ensureAdmin().catch((e) => logger.error({ err: e }, "ensureAdmin failed"));
 
 const rawPort = process.env["PORT"];
 
