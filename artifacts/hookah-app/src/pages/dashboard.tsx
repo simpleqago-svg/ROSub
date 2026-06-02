@@ -21,7 +21,7 @@ function ProgressBar({ remaining, total, label }: { remaining: number; total: nu
   );
 }
 
-function BoolCard({ label, available, locked, lockedHint }: { label: string; available: boolean; locked?: boolean; lockedHint?: string }) {
+function BoolCard({ label, available, locked, lockedHint, unavailableHint }: { label: string; available: boolean; locked?: boolean; lockedHint?: string; unavailableHint?: string }) {
   if (locked) {
     return (
       <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1">
@@ -37,8 +37,11 @@ function BoolCard({ label, available, locked, lockedHint }: { label: string; ava
     <div className={`bg-card border rounded-xl p-4 flex flex-col gap-1 ${available ? "border-primary/30" : "border-border"}`}>
       <span className="text-xs text-muted-foreground">{label}</span>
       <span className={`font-semibold text-base ${available ? "text-primary" : "text-muted-foreground"}`}>
-        {available ? "Доступно" : "Использовано"}
+        {available ? "Доступно" : "Недоступно"}
       </span>
+      {!available && unavailableHint && (
+        <span className="text-xs text-muted-foreground/70 leading-tight">{unavailableHint}</span>
+      )}
     </div>
   );
 }
@@ -191,7 +194,11 @@ export default function DashboardPage() {
                 locked={sub.hookahsRemaining > 0}
                 lockedHint="Откроется в конце"
               />
-              <BoolCard label="Электронная чаша" available={sub.electricAvailable} />
+              <BoolCard
+                label="Электронная чаша"
+                available={sub.electricAvailable}
+                unavailableHint="Доступна в последнем уровне подписки"
+              />
             </div>
 
             {/* Staff note */}
