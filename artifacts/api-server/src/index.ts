@@ -1,5 +1,15 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { db, usersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
+
+// TEMPORARY: one-time admin bootstrap — remove after deploy
+async function bootstrapAdmin() {
+  await db.update(usersTable)
+    .set({ role: "admin" })
+    .where(eq(usersTable.telegramId, 304953881));
+}
+bootstrapAdmin().catch(() => {});
 
 const rawPort = process.env["PORT"];
 
