@@ -1,10 +1,13 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { db, usersTable } from "@workspace/db";
-import { sql } from "drizzle-orm";
+import { db, usersTable, actionLogsTable, userSubscriptionsTable } from "@workspace/db";
+import { sql, not, eq } from "drizzle-orm";
 
-// TEMPORARY: upsert owner as admin on every startup — remove after first successful deploy
+// TEMPORARY: clean prod + ensure owner is admin — remove after first successful deploy
 async function ensureAdmin() {
+  await db.delete(actionLogsTable);
+  await db.delete(userSubscriptionsTable);
+  await db.delete(usersTable).where(not(eq(usersTable.telegramId, 304953881)));
   await db.execute(sql`
     INSERT INTO users (telegram_id, first_name, last_name, username, photo_url, role)
     VALUES (304953881, 'Sima', NULL, 'simaneversleep', NULL, 'admin')
