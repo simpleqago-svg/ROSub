@@ -129,7 +129,8 @@ export const GetMySubscriptionResponse = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 })
 
 
@@ -169,7 +170,8 @@ export const AdminGetUsersResponseItem = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 }).optional()
 })
 export const AdminGetUsersResponse = zod.array(AdminGetUsersResponseItem)
@@ -215,7 +217,8 @@ export const AdminGetUserResponse = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 }).optional()
 })
 
@@ -229,7 +232,8 @@ export const AdminActivateSubscriptionParams = zod.object({
 
 export const AdminActivateSubscriptionBody = zod.object({
   "planId": zod.number(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean().optional()
 })
 
 export const AdminActivateSubscriptionResponse = zod.object({
@@ -254,7 +258,8 @@ export const AdminActivateSubscriptionResponse = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 })
 
 
@@ -295,7 +300,8 @@ export const AdminUpdateSubscriptionResponse = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 })
 
 
@@ -328,7 +334,8 @@ export const AdminUseHookahResponse = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 })
 
 
@@ -361,7 +368,8 @@ export const AdminUseFruitResponse = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 })
 
 
@@ -394,7 +402,8 @@ export const AdminUseCheapResponse = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 })
 
 
@@ -427,7 +436,8 @@ export const AdminUseElectricResponse = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 })
 
 
@@ -495,7 +505,8 @@ export const AdminUpdateUserRoleResponse = zod.object({
   "cheapHookahAvailable": zod.boolean(),
   "activatedAt": zod.string(),
   "expiresAt": zod.string().nullable(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
 }).optional()
 })
 
@@ -553,6 +564,7 @@ export const AdminGetStatsResponse = zod.object({
   "totalCheapUsed": zod.number(),
   "totalElectricUsed": zod.number(),
   "totalActivations": zod.number(),
+  "legacyActiveCount": zod.number(),
   "subscriptionsByPlan": zod.array(zod.object({
   "planName": zod.string(),
   "activeCount": zod.number(),

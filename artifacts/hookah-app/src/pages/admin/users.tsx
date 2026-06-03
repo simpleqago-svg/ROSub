@@ -79,6 +79,11 @@ export default function AdminUsersPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
+                {user.subscription?.isLegacy && (
+                  <span className="text-xs bg-orange-500/15 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full">
+                    Старые цены
+                  </span>
+                )}
                 {user.subscription ? (
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                     Активна

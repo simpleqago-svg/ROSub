@@ -73,6 +73,14 @@ export default function AdminPage() {
               </button>
             </div>
 
+            {/* Legacy users counter */}
+            {(stats.legacyActiveCount ?? 0) > 0 && (
+              <div className="bg-orange-500/10 border border-orange-500/25 rounded-xl px-4 py-3 flex items-center justify-between">
+                <span className="text-sm text-orange-400 font-medium">Гостей на старых ценах</span>
+                <span className="text-sm font-bold text-orange-400">{stats.legacyActiveCount} / 10</span>
+              </div>
+            )}
+
             {/* All-time usage counters */}
             <div className="bg-card border border-border rounded-xl p-4">
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">Списания за всё время</p>

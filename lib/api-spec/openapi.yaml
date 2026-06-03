@@ -532,7 +532,7 @@ components:
 
     UserSubscriptionDetail:
       type: object
-      required: [id, userId, planId, plan, hookahsRemaining, fruitHookahsRemaining, electricAvailable, cheapHookahAvailable, activatedAt, expiresAt]
+      required: [id, userId, planId, plan, hookahsRemaining, fruitHookahsRemaining, electricAvailable, cheapHookahAvailable, activatedAt, expiresAt, isLegacy]
       properties:
         id:
           type: integer
@@ -556,6 +556,8 @@ components:
           type: ["string", "null"]
         note:
           type: ["string", "null"]
+        isLegacy:
+          type: boolean
 
     SubscriptionActivateInput:
       type: object
@@ -565,6 +567,8 @@ components:
           type: integer
         note:
           type: ["string", "null"]
+        isLegacy:
+          type: boolean
 
     SubscriptionUsageUpdate:
       type: object
@@ -647,7 +651,7 @@ components:
 
     AdminStats:
       type: object
-      required: [totalUsers, activeSubscriptions, totalHookahsUsed, totalFruitUsed, totalCheapUsed, totalElectricUsed, totalActivations]
+      required: [totalUsers, activeSubscriptions, totalHookahsUsed, totalFruitUsed, totalCheapUsed, totalElectricUsed, totalActivations, legacyActiveCount]
       properties:
         totalUsers:
           type: integer
@@ -662,6 +666,8 @@ components:
         totalElectricUsed:
           type: integer
         totalActivations:
+          type: integer
+        legacyActiveCount:
           type: integer
         subscriptionsByPlan:
           type: array

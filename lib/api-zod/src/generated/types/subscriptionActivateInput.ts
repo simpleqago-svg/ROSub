@@ -10,4 +10,5 @@ export interface SubscriptionActivateInput {
   planId: number;
   /** @nullable */
   note?: string | null;
+  isLegacy?: boolean;
 }

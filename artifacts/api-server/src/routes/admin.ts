@@ -40,6 +40,7 @@ function buildSubDetail(sub: typeof userSubscriptionsTable.$inferSelect, plan: t
     activatedAt: sub.activatedAt.toISOString(),
     expiresAt: sub.expiresAt?.toISOString() ?? null,
     note: sub.note ?? null,
+    isLegacy: sub.isLegacy,
   };
 }
 
@@ -140,6 +141,18 @@ router.post("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin,
   const [plan] = await db.select().from(subscriptionPlansTable).where(eq(subscriptionPlansTable.id, body.data.planId));
   if (!plan) { res.status(404).json({ error: "Plan not found" }); return; }
 
+  const isLegacy = body.data.isLegacy === true;
+  if (isLegacy) {
+    const [legacyRow] = await db
+      .select({ count: count() })
+      .from(userSubscriptionsTable)
+      .where(and(eq(userSubscriptionsTable.isLegacy, true), eq(userSubscriptionsTable.active, true)));
+    if ((legacyRow?.count ?? 0) >= 10) {
+      res.status(400).json({ error: "Достигнут лимит: максимум 10 гостей на старых ценах" });
+      return;
+    }
+  }
+
   await db
     .update(userSubscriptionsTable)
     .set({ active: false })
@@ -160,6 +173,7 @@ router.post("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin,
       note: body.data.note ?? null,
       active: true,
       expiresAt,
+      isLegacy,
     })
     .returning();
 
@@ -381,6 +395,7 @@ router.get("/admin/logs", requireAuth, requireAdmin, async (req, res): Promise<v
 router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const [totalUsersRow] = await db.select({ count: count() }).from(usersTable);
   const [activeSubsRow] = await db.select({ count: count() }).from(userSubscriptionsTable).where(eq(userSubscriptionsTable.active, true));
+  const [legacyRow] = await db.select({ count: count() }).from(userSubscriptionsTable).where(and(eq(userSubscriptionsTable.isLegacy, true), eq(userSubscriptionsTable.active, true)));
 
   // All-time counts from action_logs (never deleted)
   const actionCounts = await db
@@ -413,6 +428,7 @@ router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<
     totalCheapUsed: byAction("cheap"),
     totalElectricUsed: byAction("electric"),
     totalActivations: byAction("activate"),
+    legacyActiveCount: legacyRow?.count ?? 0,
     subscriptionsByPlan,
   }));
 });

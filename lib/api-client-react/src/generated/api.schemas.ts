@@ -84,12 +84,14 @@ export interface UserSubscriptionDetail {
   expiresAt: string | null;
   /** @nullable */
   note?: string | null;
+  isLegacy: boolean;
 }
 
 export interface SubscriptionActivateInput {
   planId: number;
   /** @nullable */
   note?: string | null;
+  isLegacy?: boolean;
 }
 
 export interface SubscriptionUsageUpdate {
@@ -167,6 +169,7 @@ export interface AdminStats {
   totalCheapUsed: number;
   totalElectricUsed: number;
   totalActivations: number;
+  legacyActiveCount: number;
   subscriptionsByPlan?: AdminStatsSubscriptionsByPlanItem[];
 }
 

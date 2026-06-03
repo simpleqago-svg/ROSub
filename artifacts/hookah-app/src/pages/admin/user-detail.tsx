@@ -68,6 +68,7 @@ export default function AdminUserDetailPage() {
   const [note, setNote] = useState("");
   const [selectedPlanId, setSelectedPlanId] = useState<number | "">("");
   const [activateMode, setActivateMode] = useState(false);
+  const [isLegacy, setIsLegacy] = useState(false);
 
   const openEdit = () => {
     if (!user?.subscription) return;
@@ -112,13 +113,14 @@ export default function AdminUserDetailPage() {
   const handleActivate = () => {
     if (!selectedPlanId) return;
     activateMutation.mutate(
-      { userId, data: { planId: selectedPlanId as number, note: note || null } },
+      { userId, data: { planId: selectedPlanId as number, note: note || null, isLegacy } },
       {
         onSuccess: () => {
           toast({ title: "Подписка активирована" });
           setActivateMode(false);
           setNote("");
           setSelectedPlanId("");
+          setIsLegacy(false);
           invalidate();
         },
         onError: (e) => {
@@ -312,8 +314,14 @@ export default function AdminUserDetailPage() {
           <div className="bg-card border border-primary/20 rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Подписка</p>
-                <p className="font-bold text-primary">{sub.plan.nameRu}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold text-primary">{sub.plan.nameRu}</p>
+                  {sub.isLegacy && (
+                    <span className="text-xs bg-orange-500/15 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full font-medium">
+                      Старые цены
+                    </span>
+                  )}
+                </div>
                 {sub.activatedAt && (
                   <p className="text-xs text-muted-foreground mt-0.5">
                     с {new Date(sub.activatedAt).toLocaleDateString("ru-RU")}
@@ -529,6 +537,16 @@ export default function AdminUserDetailPage() {
                     placeholder="Заметка (необязательно)"
                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                   />
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isLegacy}
+                      onChange={(e) => setIsLegacy(e.target.checked)}
+                      className="w-4 h-4 rounded accent-orange-500"
+                    />
+                    <span className="text-sm text-foreground">Старые цены</span>
+                    <span className="text-xs text-muted-foreground">(лимит 10)</span>
+                  </label>
                   <div className="flex gap-2">
                     <button
                       data-testid="button-confirm-activate"
@@ -540,7 +558,7 @@ export default function AdminUserDetailPage() {
                     </button>
                     <button
                       data-testid="button-cancel-activate"
-                      onClick={() => { setActivateMode(false); setSelectedPlanId(""); setNote(""); }}
+                      onClick={() => { setActivateMode(false); setSelectedPlanId(""); setNote(""); setIsLegacy(false); }}
                       className="px-4 bg-muted text-muted-foreground rounded-lg py-2.5 text-sm"
                     >
                       Отмена

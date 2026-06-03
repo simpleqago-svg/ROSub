@@ -21,4 +21,5 @@ export interface UserSubscriptionDetail {
   expiresAt: string | null;
   /** @nullable */
   note?: string | null;
+  isLegacy: boolean;
 }

@@ -17,6 +17,7 @@ export const userSubscriptionsTable = pgTable("user_subscriptions", {
   expiresAt: timestamp("expires_at", { withTimezone: true }),
   note: text("note"),
   active: boolean("active").notNull().default(true),
+  isLegacy: boolean("is_legacy").notNull().default(false),
 });
 
 export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptionsTable).omit({ id: true, activatedAt: true });

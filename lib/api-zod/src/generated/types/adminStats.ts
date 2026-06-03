@@ -15,5 +15,6 @@ export interface AdminStats {
   totalCheapUsed: number;
   totalElectricUsed: number;
   totalActivations: number;
+  legacyActiveCount: number;
   subscriptionsByPlan?: AdminStatsSubscriptionsByPlanItem[];
 }
