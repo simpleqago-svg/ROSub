@@ -2,6 +2,7 @@ import { useAdminGetUsers } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight, Search } from "lucide-react";
+import BackButton from "@/components/back-button";
 import { useState } from "react";
 
 export default function AdminUsersPage() {
@@ -22,13 +23,7 @@ export default function AdminUsersPage() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-card border-b border-border px-4 py-4">
-        <button
-          data-testid="button-back-admin"
-          onClick={() => setLocation("/admin")}
-          className="text-xs text-muted-foreground mb-2 flex items-center gap-1"
-        >
-          ← Назад
-        </button>
+        <BackButton data-testid="button-back-admin" onClick={() => setLocation("/admin")} />
         <h1 className="text-xl font-bold text-foreground">Гости клуба</h1>
       </div>
 

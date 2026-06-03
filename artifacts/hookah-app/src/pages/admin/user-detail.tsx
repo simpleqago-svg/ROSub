@@ -18,6 +18,7 @@ import {
   getAdminGetUserLogsQueryKey,
 } from "@workspace/api-client-react";
 import { useLocation, useParams } from "wouter";
+import BackButton from "@/components/back-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -169,13 +170,7 @@ export default function AdminUserDetailPage() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-card border-b border-border px-4 py-4">
-        <button
-          data-testid="button-back-users"
-          onClick={() => setLocation("/admin/users")}
-          className="text-xs text-muted-foreground mb-2 flex items-center gap-1"
-        >
-          ← Назад
-        </button>
+        <BackButton data-testid="button-back-users" onClick={() => setLocation("/admin/users")} />
         <h1 className="text-xl font-bold text-foreground">
           {user.firstName} {user.lastName ?? ""}
         </h1>

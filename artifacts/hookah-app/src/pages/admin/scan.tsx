@@ -9,6 +9,7 @@ import {
   getAdminGetStatsQueryKey,
 } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
+import BackButton from "@/components/back-button";
 import { useRef, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
@@ -116,13 +117,7 @@ export default function AdminScanPage() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-card border-b border-border px-4 py-4">
-        <button
-          data-testid="button-back-admin-scan"
-          onClick={() => setLocation("/admin")}
-          className="text-xs text-muted-foreground mb-2 flex items-center gap-1"
-        >
-          ← Назад
-        </button>
+        <BackButton data-testid="button-back-admin-scan" onClick={() => setLocation("/admin")} />
         <h1 className="text-xl font-bold text-foreground">Сканировать QR</h1>
         <p className="text-sm text-muted-foreground">
           {scanned ? `Гость ID: ${scanned.userId}` : "Наведите на QR-код гостя"}

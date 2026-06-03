@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import BackButton from "@/components/back-button";
 
 type FaqItem = { q: string; a: string | ReactNode };
 
@@ -182,12 +183,7 @@ export default function FaqPage() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-card border-b border-border px-4 py-4">
-        <button
-          onClick={() => setLocation("/profile")}
-          className="text-xs text-muted-foreground mb-2 flex items-center gap-1"
-        >
-          ← Назад
-        </button>
+        <BackButton onClick={() => setLocation("/profile")} />
         <h1 className="text-xl font-bold text-foreground">Как это работает</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Всё о подписке Rodina Club</p>
       </div>

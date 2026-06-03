@@ -1,6 +1,7 @@
 import { useAdminGetLogs } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
+import BackButton from "@/components/back-button";
 
 const ACTION_LABELS: Record<string, string> = {
   hookah: "🌿 Кальян",
@@ -27,12 +28,7 @@ export default function AdminActivityPage() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-card border-b border-border px-4 py-4">
-        <button
-          onClick={() => setLocation("/admin")}
-          className="text-xs text-muted-foreground mb-2 flex items-center gap-1"
-        >
-          ← Назад
-        </button>
+        <BackButton onClick={() => setLocation("/admin")} />
         <h1 className="text-xl font-bold text-foreground">Активность</h1>
         <p className="text-sm text-muted-foreground">Последние 50 действий</p>
       </div>
