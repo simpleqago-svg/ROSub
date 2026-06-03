@@ -158,6 +158,27 @@ paths:
         "404":
           description: Not found
 
+  /admin/users/by-code/{code}:
+    get:
+      operationId: adminGetUserByCode
+      tags: [admin]
+      summary: Find user by display code (admin)
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserView"
+        "404":
+          description: Not found
+
   /admin/users/{userId}/subscription:
     post:
       operationId: adminActivateSubscription
@@ -498,6 +519,8 @@ components:
           enum: [user, staff, admin]
         note:
           type: ["string", "null"]
+        displayCode:
+          type: ["string", "null"]
         createdAt:
           type: string
         loyaltyStamps:
@@ -609,6 +632,8 @@ components:
         role:
           type: string
         note:
+          type: ["string", "null"]
+        displayCode:
           type: ["string", "null"]
         createdAt:
           type: string

@@ -6,6 +6,15 @@ import { AuthTelegramBody, AuthTelegramResponse, GetMeResponse, UpdateMyNoteBody
 
 const router: IRouter = Router();
 
+function generateDisplayCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
 function buildUser(user: typeof usersTable.$inferSelect) {
   return {
     id: user.id,
@@ -16,6 +25,7 @@ function buildUser(user: typeof usersTable.$inferSelect) {
     photoUrl: user.photoUrl,
     role: user.role,
     note: user.note ?? null,
+    displayCode: user.displayCode ?? null,
     createdAt: user.createdAt.toISOString(),
     loyaltyStamps: user.loyaltyStamps,
     loyaltyTotalRedeemed: user.loyaltyTotalRedeemed,
@@ -36,15 +46,40 @@ router.post("/auth/telegram", async (req, res): Promise<void> => {
   let user = existing[0];
 
   if (!user) {
+    let code = generateDisplayCode();
+    let attempts = 0;
+    while (attempts < 10) {
+      const exists = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.displayCode, code));
+      if (exists.length === 0) break;
+      code = generateDisplayCode();
+      attempts++;
+    }
     const [created] = await db
       .insert(usersTable)
-      .values({ telegramId, firstName, lastName: lastName ?? null, username: username ?? null, photoUrl: photoUrl ?? null })
+      .values({ telegramId, firstName, lastName: lastName ?? null, username: username ?? null, photoUrl: photoUrl ?? null, displayCode: code })
       .returning();
     user = created;
   } else {
+    const updateData: Partial<typeof usersTable.$inferInsert> = {
+      firstName,
+      lastName: lastName ?? null,
+      username: username ?? null,
+      photoUrl: photoUrl ?? null,
+    };
+    if (!user.displayCode) {
+      let code = generateDisplayCode();
+      let attempts = 0;
+      while (attempts < 10) {
+        const exists = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.displayCode, code));
+        if (exists.length === 0) break;
+        code = generateDisplayCode();
+        attempts++;
+      }
+      updateData.displayCode = code;
+    }
     const [updated] = await db
       .update(usersTable)
-      .set({ firstName, lastName: lastName ?? null, username: username ?? null, photoUrl: photoUrl ?? null })
+      .set(updateData)
       .where(eq(usersTable.id, user.id))
       .returning();
     user = updated;

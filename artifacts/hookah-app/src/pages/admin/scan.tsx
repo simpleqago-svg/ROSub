@@ -3,8 +3,8 @@ import {
   useAdminUseFruit,
   useAdminUseCheap,
   useAdminUseElectric,
-  useAdminGetUser,
-  getAdminGetUserQueryKey,
+  useAdminGetUserByCode,
+  getAdminGetUserByCodeQueryKey,
   getAdminGetUsersQueryKey,
   getAdminGetStatsQueryKey,
 } from "@workspace/api-client-react";
@@ -16,7 +16,7 @@ import { toast } from "@/hooks/use-toast";
 import { Html5Qrcode } from "html5-qrcode";
 import { Lock } from "lucide-react";
 
-type ScannedState = { userId: number } | null;
+type ScannedState = { code: string } | null;
 
 export default function AdminScanPage() {
   const [, setLocation] = useLocation();
@@ -31,27 +31,31 @@ export default function AdminScanPage() {
   const useCheapMutation = useAdminUseCheap();
   const useElectricMutation = useAdminUseElectric();
 
-  const { data: guestData } = useAdminGetUser(scanned?.userId ?? 0, {
-    query: { enabled: !!scanned?.userId, queryKey: getAdminGetUserQueryKey(scanned?.userId ?? 0) },
+  const { data: guestData } = useAdminGetUserByCode(scanned?.code ?? "", {
+    query: {
+      enabled: !!scanned?.code,
+      queryKey: getAdminGetUserByCodeQueryKey(scanned?.code ?? ""),
+    },
   });
 
-  const invalidate = (userId: number) => {
-    queryClient.invalidateQueries({ queryKey: getAdminGetUserQueryKey(userId) });
+  const invalidate = () => {
+    if (!scanned?.code) return;
+    queryClient.invalidateQueries({ queryKey: getAdminGetUserByCodeQueryKey(scanned.code) });
     queryClient.invalidateQueries({ queryKey: getAdminGetUsersQueryKey() });
     queryClient.invalidateQueries({ queryKey: getAdminGetStatsQueryKey() });
   };
 
   const doAction = (
     mutation: typeof useHookahMutation,
-    userId: number,
     label: string
   ) => {
+    if (!guestData) return;
     mutation.mutate(
-      { userId },
+      { userId: guestData.id },
       {
         onSuccess: () => {
           toast({ title: label, description: "Успешно списано" });
-          invalidate(userId);
+          invalidate();
         },
         onError: (err) => {
           const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? "Ошибка";
@@ -70,12 +74,12 @@ export default function AdminScanPage() {
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 220, height: 220 } },
         (decodedText) => {
-          const userId = parseInt(decodedText, 10);
-          if (!isNaN(userId) && userId > 0) {
+          const code = decodedText.trim().toUpperCase();
+          if (code.length >= 4) {
             html5QrCode.stop().catch(() => {});
             scannerRef.current = null;
             setScanning(false);
-            setScanned({ userId });
+            setScanned({ code });
           }
         },
         () => {}
@@ -102,9 +106,9 @@ export default function AdminScanPage() {
   };
 
   const handleManual = () => {
-    const userId = parseInt(manualId, 10);
-    if (!isNaN(userId) && userId > 0) {
-      setScanned({ userId });
+    const code = manualId.trim().toUpperCase();
+    if (code.length >= 4) {
+      setScanned({ code });
       setManualId("");
     }
   };
@@ -120,7 +124,7 @@ export default function AdminScanPage() {
         <BackButton data-testid="button-back-admin-scan" onClick={() => setLocation("/admin")} />
         <h1 className="text-xl font-bold text-foreground">Сканировать QR</h1>
         <p className="text-sm text-muted-foreground">
-          {scanned ? `Гость ID: ${scanned.userId}` : "Наведите на QR-код гостя"}
+          {scanned ? `Код: ${scanned.code}` : "Наведите на QR-код гостя"}
         </p>
       </div>
 
@@ -159,7 +163,7 @@ export default function AdminScanPage() {
               </div>
             ) : (
               <div className="bg-card border border-border rounded-xl px-4 py-3 text-sm text-muted-foreground">
-                Загрузка...
+                {scanned.code ? "Гость не найден..." : "Загрузка..."}
               </div>
             )}
 
@@ -209,12 +213,12 @@ export default function AdminScanPage() {
             )}
 
             {/* Action buttons */}
-            {sub && (
+            {sub && guestData && (
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Списать</p>
                 <button
                   data-testid="button-use-hookah"
-                  onClick={() => doAction(useHookahMutation, scanned.userId, "Кальян списан")}
+                  onClick={() => doAction(useHookahMutation, "Кальян списан")}
                   disabled={isPending || sub.hookahsRemaining <= 0}
                   className="w-full bg-primary text-primary-foreground rounded-xl py-3 font-semibold disabled:opacity-40"
                 >
@@ -223,7 +227,7 @@ export default function AdminScanPage() {
                 {sub.plan.bonusHookahFruit > 0 && (
                   <button
                     data-testid="button-use-fruit"
-                    onClick={() => doAction(useFruitMutation, scanned.userId, "Фрукт списан")}
+                    onClick={() => doAction(useFruitMutation, "Фрукт списан")}
                     disabled={isPending || sub.fruitHookahsRemaining <= 0 || sub.hookahsRemaining <= 0}
                     className="w-full bg-primary/20 text-primary border border-primary/30 rounded-xl py-3 font-semibold disabled:opacity-40"
                   >
@@ -234,7 +238,7 @@ export default function AdminScanPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     data-testid="button-use-cheap"
-                    onClick={() => doAction(useCheapMutation, scanned.userId, "350 RSD кальян списан")}
+                    onClick={() => doAction(useCheapMutation, "350 RSD кальян списан")}
                     disabled={isPending || !cheapAvailableDisplay}
                     className="bg-secondary text-secondary-foreground rounded-xl py-3 font-semibold disabled:opacity-40"
                   >
@@ -242,7 +246,7 @@ export default function AdminScanPage() {
                   </button>
                   <button
                     data-testid="button-use-electric"
-                    onClick={() => doAction(useElectricMutation, scanned.userId, "Эл. чаша списана")}
+                    onClick={() => doAction(useElectricMutation, "Эл. чаша списана")}
                     disabled={isPending || !sub.electricAvailable}
                     className="bg-secondary text-secondary-foreground rounded-xl py-3 font-semibold disabled:opacity-40"
                   >
@@ -264,20 +268,21 @@ export default function AdminScanPage() {
         {/* Manual input */}
         {!scanned && (
           <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Ввести ID вручную</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Ввести код вручную</p>
             <div className="flex gap-2">
               <input
                 data-testid="input-manual-user-id"
-                type="number"
-                placeholder="ID гостя..."
+                type="text"
+                placeholder="Код гостя (6 символов)..."
                 value={manualId}
-                onChange={(e) => setManualId(e.target.value)}
-                className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                onChange={(e) => setManualId(e.target.value.toUpperCase())}
+                maxLength={8}
+                className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary uppercase tracking-widest"
               />
               <button
                 data-testid="button-manual-redeem"
                 onClick={handleManual}
-                disabled={!manualId}
+                disabled={manualId.trim().length < 4}
                 className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-60"
               >
                 Найти

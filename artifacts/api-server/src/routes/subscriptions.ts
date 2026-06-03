@@ -46,6 +46,7 @@ router.get("/subscriptions/my", requireAuth, async (req, res): Promise<void> => 
     activatedAt: sub.activatedAt.toISOString(),
     expiresAt: sub.expiresAt?.toISOString() ?? null,
     note: sub.note ?? null,
+    isLegacy: sub.isLegacy,
   }));
 });
 

@@ -91,6 +91,7 @@ function buildUserView(user: typeof usersTable.$inferSelect, row?: { user_subscr
     username: user.username,
     role: user.role,
     note: user.note ?? null,
+    displayCode: user.displayCode ?? null,
     createdAt: user.createdAt.toISOString(),
     loyaltyStamps: user.loyaltyStamps,
     loyaltyTotalRedeemed: user.loyaltyTotalRedeemed,
@@ -113,6 +114,22 @@ router.get("/admin/users", requireAuth, requireAdmin, async (req, res): Promise<
   );
 
   res.json(AdminGetUsersResponse.parse(result));
+});
+
+router.get("/admin/users/by-code/:code", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const code = String(req.params.code ?? "").toUpperCase();
+  if (!code) { res.status(400).json({ error: "Code required" }); return; }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.displayCode, code));
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  const rows = await db
+    .select()
+    .from(userSubscriptionsTable)
+    .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
+    .where(and(eq(userSubscriptionsTable.userId, user.id), eq(userSubscriptionsTable.active, true)));
+
+  res.json(AdminGetUserResponse.parse(buildUserView(user, rows[0])));
 });
 
 router.get("/admin/users/:userId", requireAuth, requireAdmin, async (req, res): Promise<void> => {

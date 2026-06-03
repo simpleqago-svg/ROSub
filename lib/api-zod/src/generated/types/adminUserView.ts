@@ -18,6 +18,8 @@ export interface AdminUserView {
   role: string;
   /** @nullable */
   note?: string | null;
+  /** @nullable */
+  displayCode?: string | null;
   createdAt: string;
   loyaltyStamps: number;
   loyaltyTotalRedeemed: number;

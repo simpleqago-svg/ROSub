@@ -20,6 +20,8 @@ export interface User {
   role: UserRole;
   /** @nullable */
   note?: string | null;
+  /** @nullable */
+  displayCode?: string | null;
   createdAt: string;
   loyaltyStamps: number;
   loyaltyTotalRedeemed: number;

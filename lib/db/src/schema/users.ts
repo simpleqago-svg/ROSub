@@ -11,6 +11,7 @@ export const usersTable = pgTable("users", {
   photoUrl: text("photo_url"),
   role: text("role").notNull().default("user"),
   note: text("note"),
+  displayCode: text("display_code").unique(),
   loyaltyStamps: integer("loyalty_stamps").notNull().default(0),
   loyaltyTotalRedeemed: integer("loyalty_total_redeemed").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

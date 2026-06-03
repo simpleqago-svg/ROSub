@@ -15,6 +15,7 @@ import AdminActivityPage from "@/pages/admin/activity";
 import FaqPage from "@/pages/faq";
 import BottomNav from "@/components/bottom-nav";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 
 import "@/lib/api";
 
@@ -53,6 +54,14 @@ function AppRoutes() {
 }
 
 function App() {
+  useEffect(() => {
+    const tg = (window as Window & { Telegram?: { WebApp?: { setBottomBarColor?: (c: string) => void; setHeaderColor?: (c: string) => void } } }).Telegram?.WebApp;
+    if (tg) {
+      tg.setBottomBarColor?.("#0d0d0d");
+      tg.setHeaderColor?.("#0d0d0d");
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

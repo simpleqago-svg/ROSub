@@ -161,6 +161,8 @@ export default function AdminPage() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                  {new Date(log.createdAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })}
+                  {" "}
                   {new Date(log.createdAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>

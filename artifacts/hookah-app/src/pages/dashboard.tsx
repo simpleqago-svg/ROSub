@@ -1,4 +1,4 @@
-import { useGetMe, useGetMySubscription, useUpdateMyNote } from "@workspace/api-client-react";
+import { useGetMe, useGetMySubscription, getGetMySubscriptionQueryKey, useUpdateMyNote } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -93,7 +93,9 @@ const DEBOUNCE_MS = 800;
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const { data: user, isLoading: userLoading, error: userError } = useGetMe();
-  const { data: sub, isLoading: subLoading } = useGetMySubscription();
+  const { data: sub, isLoading: subLoading } = useGetMySubscription({
+    query: { queryKey: getGetMySubscriptionQueryKey(), refetchInterval: 30_000 },
+  });
   const updateNoteMutation = useUpdateMyNote();
 
   const [note, setNote] = useState<string>("");
@@ -165,13 +167,20 @@ export default function DashboardPage() {
           <p className="text-xs text-muted-foreground uppercase tracking-wide">Ваш QR-код для персонала</p>
           <div className="bg-white rounded-xl p-3">
             <QRCodeSVG
-              value={String(user.id)}
+              value={user.displayCode ?? String(user.id)}
               size={140}
               bgColor="#ffffff"
               fgColor="#1a1208"
               data-testid="img-qr-code"
             />
           </div>
+          {user.displayCode && (
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold tracking-[0.25em] text-foreground font-mono">
+                {user.displayCode}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Subscription */}
@@ -188,29 +197,59 @@ export default function DashboardPage() {
         ) : sub ? (
           <>
             {/* Plan badge + dates */}
-            <div className="bg-primary/10 border border-primary/20 rounded-2xl px-5 py-4">
-              <p className="text-xs text-primary/70 uppercase tracking-wide mb-1">Активная подписка</p>
-              <h2 className="text-xl font-bold text-primary">{sub.plan.nameRu}</h2>
-              <p className="text-sm text-muted-foreground">{sub.plan.nameRs}</p>
-              <div className="mt-3 pt-3 border-t border-primary/10 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                <div>
-                  <p className="text-primary/60 uppercase tracking-wide text-[10px] mb-0.5">Активирована</p>
-                  <p className="font-medium text-foreground">
-                    {sub.activatedAt
-                      ? new Date(sub.activatedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
-                      : "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-primary/60 uppercase tracking-wide text-[10px] mb-0.5">Срок действия</p>
-                  <p className="font-medium text-foreground">
-                    {sub.expiresAt
-                      ? new Date(sub.expiresAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
-                      : "Бессрочно"}
-                  </p>
-                </div>
-              </div>
-            </div>
+            {(() => {
+              const daysLeft = sub.expiresAt
+                ? Math.ceil((new Date(sub.expiresAt).getTime() - Date.now()) / 86_400_000)
+                : null;
+              const isExpired = daysLeft !== null && daysLeft <= 0;
+              const isWarning = daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
+              return (
+                <>
+                  {isExpired && (
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2.5 flex items-center gap-2">
+                      <span className="text-sm font-semibold text-red-400">Подписка истекла</span>
+                      <span className="text-xs text-red-400/70">
+                        {Math.abs(daysLeft!)} {Math.abs(daysLeft!) === 1 ? "день" : "дней"} назад
+                      </span>
+                    </div>
+                  )}
+                  {isWarning && (
+                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-2.5">
+                      <span className="text-sm font-semibold text-orange-400">
+                        ⚠️ Осталось {daysLeft} {daysLeft === 1 ? "день" : daysLeft! <= 4 ? "дня" : "дней"}!
+                      </span>
+                    </div>
+                  )}
+                  <div className={`border rounded-2xl px-5 py-4 ${isExpired ? "bg-red-500/5 border-red-500/20" : "bg-primary/10 border-primary/20"}`}>
+                    <p className={`text-xs uppercase tracking-wide mb-1 ${isExpired ? "text-red-400/70" : "text-primary/70"}`}>
+                      {isExpired ? "Истёкшая подписка" : "Активная подписка"}
+                    </p>
+                    <h2 className={`text-xl font-bold ${isExpired ? "text-red-400" : "text-primary"}`}>{sub.plan.nameRu}</h2>
+                    <p className="text-sm text-muted-foreground">{sub.plan.nameRs}</p>
+                    <div className="mt-3 pt-3 border-t border-white/5 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide mb-0.5 opacity-60">Активирована</p>
+                        <p className="font-medium text-foreground">
+                          {sub.activatedAt
+                            ? new Date(sub.activatedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+                            : "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide mb-0.5 opacity-60">
+                          {isExpired ? "Истекла" : daysLeft !== null ? `Осталось ${daysLeft} ${daysLeft === 1 ? "день" : daysLeft <= 4 ? "дня" : "дней"}` : "Срок действия"}
+                        </p>
+                        <p className={`font-medium ${isExpired ? "text-red-400" : isWarning ? "text-orange-400" : "text-foreground"}`}>
+                          {sub.expiresAt
+                            ? new Date(sub.expiresAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+                            : "Бессрочно"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
 
             {/* Progress bars */}
             <div className="space-y-2">

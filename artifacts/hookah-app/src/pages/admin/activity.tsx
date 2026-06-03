@@ -30,7 +30,7 @@ export default function AdminActivityPage() {
       <div className="bg-card border-b border-border px-4 py-4">
         <BackButton onClick={() => setLocation("/admin")} />
         <h1 className="text-xl font-bold text-foreground">Активность</h1>
-        <p className="text-sm text-muted-foreground">Последние 50 действий</p>
+        <p className="text-sm text-muted-foreground">Последние 100 действий</p>
       </div>
 
       <div className="px-4 pt-3 space-y-2">

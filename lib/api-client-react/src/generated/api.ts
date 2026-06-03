@@ -653,6 +653,83 @@ export function useAdminGetUser<TData = Awaited<ReturnType<typeof adminGetUser>>
 
 
 
+export const getAdminGetUserByCodeUrl = (code: string,) => {
+
+
+
+
+  return `/api/admin/users/by-code/${code}`
+}
+
+/**
+ * @summary Find user by display code (admin)
+ */
+export const adminGetUserByCode = async (code: string, options?: RequestInit): Promise<AdminUserView> => {
+
+  return customFetch<AdminUserView>(getAdminGetUserByCodeUrl(code),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminGetUserByCodeQueryKey = (code: string,) => {
+    return [
+    `/api/admin/users/by-code/${code}`
+    ] as const;
+    }
+
+
+export const getAdminGetUserByCodeQueryOptions = <TData = Awaited<ReturnType<typeof adminGetUserByCode>>, TError = ErrorType<void>>(code: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetUserByCode>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminGetUserByCodeQueryKey(code);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetUserByCode>>> = ({ signal }) => adminGetUserByCode(code, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(code), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminGetUserByCode>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminGetUserByCodeQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetUserByCode>>>
+export type AdminGetUserByCodeQueryError = ErrorType<void>
+
+
+/**
+ * @summary Find user by display code (admin)
+ */
+
+export function useAdminGetUserByCode<TData = Awaited<ReturnType<typeof adminGetUserByCode>>, TError = ErrorType<void>>(
+ code: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetUserByCode>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminGetUserByCodeQueryOptions(code,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getAdminActivateSubscriptionUrl = (userId: number,) => {
 
 
