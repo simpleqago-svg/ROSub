@@ -356,6 +356,54 @@ paths:
         "404":
           description: User not found
 
+  /admin/users/{userId}/loyalty/stamp:
+    post:
+      operationId: adminAddLoyaltyStamp
+      tags: [admin]
+      summary: Add a loyalty stamp for user (staff)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated user loyalty info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoyaltyStatus"
+        "403":
+          description: Forbidden
+        "404":
+          description: User not found
+
+  /admin/users/{userId}/loyalty/redeem:
+    post:
+      operationId: adminRedeemLoyalty
+      tags: [admin]
+      summary: Redeem 10 loyalty stamps for a free hookah (staff)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated user loyalty info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoyaltyStatus"
+        "400":
+          description: Not enough stamps
+        "403":
+          description: Forbidden
+        "404":
+          description: User not found
+
   /admin/logs:
     get:
       operationId: adminGetLogs
@@ -431,7 +479,7 @@ components:
 
     User:
       type: object
-      required: [id, telegramId, firstName, role, createdAt]
+      required: [id, telegramId, firstName, role, createdAt, loyaltyStamps, loyaltyTotalRedeemed]
       properties:
         id:
           type: integer
@@ -452,6 +500,10 @@ components:
           type: ["string", "null"]
         createdAt:
           type: string
+        loyaltyStamps:
+          type: integer
+        loyaltyTotalRedeemed:
+          type: integer
 
     SubscriptionPlan:
       type: object
@@ -538,7 +590,7 @@ components:
 
     AdminUserView:
       type: object
-      required: [id, telegramId, firstName, role, createdAt]
+      required: [id, telegramId, firstName, role, createdAt, loyaltyStamps, loyaltyTotalRedeemed]
       properties:
         id:
           type: integer
@@ -556,6 +608,10 @@ components:
           type: ["string", "null"]
         createdAt:
           type: string
+        loyaltyStamps:
+          type: integer
+        loyaltyTotalRedeemed:
+          type: integer
         subscription:
           $ref: "#/components/schemas/UserSubscriptionDetail"
 
@@ -579,6 +635,15 @@ components:
           type: string
         createdAt:
           type: string
+
+    LoyaltyStatus:
+      type: object
+      required: [loyaltyStamps, loyaltyTotalRedeemed]
+      properties:
+        loyaltyStamps:
+          type: integer
+        loyaltyTotalRedeemed:
+          type: integer
 
     AdminStats:
       type: object

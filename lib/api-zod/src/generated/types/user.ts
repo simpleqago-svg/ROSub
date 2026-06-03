@@ -21,4 +21,6 @@ export interface User {
   /** @nullable */
   note?: string | null;
   createdAt: string;
+  loyaltyStamps: number;
+  loyaltyTotalRedeemed: number;
 }

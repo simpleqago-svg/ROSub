@@ -25,6 +25,7 @@ import type {
   AdminUserView,
   AuthResponse,
   HealthStatus,
+  LoyaltyStatus,
   SubscriptionActivateInput,
   SubscriptionPlan,
   SubscriptionUsageUpdate,
@@ -1223,6 +1224,146 @@ export const useAdminUpdateUserRole = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getAdminUpdateUserRoleMutationOptions(options));
+    }
+
+export const getAdminAddLoyaltyStampUrl = (userId: number,) => {
+
+
+
+
+  return `/api/admin/users/${userId}/loyalty/stamp`
+}
+
+/**
+ * @summary Add a loyalty stamp for user (staff)
+ */
+export const adminAddLoyaltyStamp = async (userId: number, options?: RequestInit): Promise<LoyaltyStatus> => {
+
+  return customFetch<LoyaltyStatus>(getAdminAddLoyaltyStampUrl(userId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAdminAddLoyaltyStampMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminAddLoyaltyStamp>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminAddLoyaltyStamp>>, TError,{userId: number}, TContext> => {
+
+const mutationKey = ['adminAddLoyaltyStamp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminAddLoyaltyStamp>>, {userId: number}> = (props) => {
+          const {userId} = props ?? {};
+
+          return  adminAddLoyaltyStamp(userId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminAddLoyaltyStampMutationResult = NonNullable<Awaited<ReturnType<typeof adminAddLoyaltyStamp>>>
+
+    export type AdminAddLoyaltyStampMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a loyalty stamp for user (staff)
+ */
+export const useAdminAddLoyaltyStamp = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminAddLoyaltyStamp>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminAddLoyaltyStamp>>,
+        TError,
+        {userId: number},
+        TContext
+      > => {
+      return useMutation(getAdminAddLoyaltyStampMutationOptions(options));
+    }
+
+export const getAdminRedeemLoyaltyUrl = (userId: number,) => {
+
+
+
+
+  return `/api/admin/users/${userId}/loyalty/redeem`
+}
+
+/**
+ * @summary Redeem 10 loyalty stamps for a free hookah (staff)
+ */
+export const adminRedeemLoyalty = async (userId: number, options?: RequestInit): Promise<LoyaltyStatus> => {
+
+  return customFetch<LoyaltyStatus>(getAdminRedeemLoyaltyUrl(userId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAdminRedeemLoyaltyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRedeemLoyalty>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminRedeemLoyalty>>, TError,{userId: number}, TContext> => {
+
+const mutationKey = ['adminRedeemLoyalty'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminRedeemLoyalty>>, {userId: number}> = (props) => {
+          const {userId} = props ?? {};
+
+          return  adminRedeemLoyalty(userId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminRedeemLoyaltyMutationResult = NonNullable<Awaited<ReturnType<typeof adminRedeemLoyalty>>>
+
+    export type AdminRedeemLoyaltyMutationError = ErrorType<void>
+
+    /**
+ * @summary Redeem 10 loyalty stamps for a free hookah (staff)
+ */
+export const useAdminRedeemLoyalty = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminRedeemLoyalty>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminRedeemLoyalty>>,
+        TError,
+        {userId: number},
+        TContext
+      > => {
+      return useMutation(getAdminRedeemLoyaltyMutationOptions(options));
     }
 
 export const getAdminGetLogsUrl = () => {

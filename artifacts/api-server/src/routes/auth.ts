@@ -17,6 +17,8 @@ function buildUser(user: typeof usersTable.$inferSelect) {
     role: user.role,
     note: user.note ?? null,
     createdAt: user.createdAt.toISOString(),
+    loyaltyStamps: user.loyaltyStamps,
+    loyaltyTotalRedeemed: user.loyaltyTotalRedeemed,
   };
 }
 

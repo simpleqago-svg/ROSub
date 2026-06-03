@@ -18,6 +18,10 @@ import {
   AdminGetUserLogsResponse,
   AdminGetStatsResponse,
   AdminGetLogsResponse,
+  AdminAddLoyaltyStampParams,
+  AdminAddLoyaltyStampResponse,
+  AdminRedeemLoyaltyParams,
+  AdminRedeemLoyaltyResponse,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -87,6 +91,8 @@ function buildUserView(user: typeof usersTable.$inferSelect, row?: { user_subscr
     role: user.role,
     note: user.note ?? null,
     createdAt: user.createdAt.toISOString(),
+    loyaltyStamps: user.loyaltyStamps,
+    loyaltyTotalRedeemed: user.loyaltyTotalRedeemed,
     subscription: row && row.subscription_plans ? buildSubDetail(row.user_subscriptions, row.subscription_plans) : undefined,
   };
 }
@@ -409,6 +415,52 @@ router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<
     totalActivations: byAction("activate"),
     subscriptionsByPlan,
   }));
+});
+
+router.post("/admin/users/:userId/loyalty/stamp", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const params = AdminAddLoyaltyStampParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, params.data.userId));
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  const newStamps = Math.min(user.loyaltyStamps + 1, 10);
+  const [updated] = await db
+    .update(usersTable)
+    .set({ loyaltyStamps: newStamps })
+    .where(eq(usersTable.id, params.data.userId))
+    .returning();
+
+  const staff = getAuthedUser(req);
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "loyalty_stamp", `Добавлена марка лояльности (${newStamps}/10)`);
+
+  res.json(AdminAddLoyaltyStampResponse.parse({ loyaltyStamps: updated.loyaltyStamps, loyaltyTotalRedeemed: updated.loyaltyTotalRedeemed }));
+});
+
+router.post("/admin/users/:userId/loyalty/redeem", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const params = AdminRedeemLoyaltyParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, params.data.userId));
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  if (user.loyaltyStamps < 10) {
+    res.status(400).json({ error: "Недостаточно марок (нужно 10)" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(usersTable)
+    .set({ loyaltyStamps: 0, loyaltyTotalRedeemed: user.loyaltyTotalRedeemed + 1 })
+    .where(eq(usersTable.id, params.data.userId))
+    .returning();
+
+  const staff = getAuthedUser(req);
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "loyalty_redeem", `Погашена карта лояльности — кальян за 350 RSD (всего: ${updated.loyaltyTotalRedeemed})`);
+
+  res.json(AdminRedeemLoyaltyResponse.parse({ loyaltyStamps: updated.loyaltyStamps, loyaltyTotalRedeemed: updated.loyaltyTotalRedeemed }));
 });
 
 // TEMPORARY: one-shot admin promotion — remove after use

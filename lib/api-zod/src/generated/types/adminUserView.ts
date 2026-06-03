@@ -19,5 +19,7 @@ export interface AdminUserView {
   /** @nullable */
   note?: string | null;
   createdAt: string;
+  loyaltyStamps: number;
+  loyaltyTotalRedeemed: number;
   subscription?: UserSubscriptionDetail;
 }

@@ -43,6 +43,8 @@ export interface User {
   /** @nullable */
   note?: string | null;
   createdAt: string;
+  loyaltyStamps: number;
+  loyaltyTotalRedeemed: number;
 }
 
 export interface AuthResponse {
@@ -128,6 +130,8 @@ export interface AdminUserView {
   /** @nullable */
   note?: string | null;
   createdAt: string;
+  loyaltyStamps: number;
+  loyaltyTotalRedeemed: number;
   subscription?: UserSubscriptionDetail;
 }
 
@@ -142,6 +146,11 @@ export interface ActionLog {
   action: string;
   description: string;
   createdAt: string;
+}
+
+export interface LoyaltyStatus {
+  loyaltyStamps: number;
+  loyaltyTotalRedeemed: number;
 }
 
 export type AdminStatsSubscriptionsByPlanItem = {

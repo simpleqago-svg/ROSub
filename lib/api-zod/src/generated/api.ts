@@ -38,7 +38,9 @@ export const AuthTelegramResponse = zod.object({
   "photoUrl": zod.string().nullish(),
   "role": zod.enum(['user', 'staff', 'admin']),
   "note": zod.string().nullish(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "loyaltyStamps": zod.number(),
+  "loyaltyTotalRedeemed": zod.number()
 }),
   "token": zod.string()
 })
@@ -56,7 +58,9 @@ export const GetMeResponse = zod.object({
   "photoUrl": zod.string().nullish(),
   "role": zod.enum(['user', 'staff', 'admin']),
   "note": zod.string().nullish(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "loyaltyStamps": zod.number(),
+  "loyaltyTotalRedeemed": zod.number()
 })
 
 
@@ -76,7 +80,9 @@ export const UpdateMyNoteResponse = zod.object({
   "photoUrl": zod.string().nullish(),
   "role": zod.enum(['user', 'staff', 'admin']),
   "note": zod.string().nullish(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "loyaltyStamps": zod.number(),
+  "loyaltyTotalRedeemed": zod.number()
 })
 
 
@@ -139,6 +145,8 @@ export const AdminGetUsersResponseItem = zod.object({
   "role": zod.string(),
   "note": zod.string().nullish(),
   "createdAt": zod.string(),
+  "loyaltyStamps": zod.number(),
+  "loyaltyTotalRedeemed": zod.number(),
   "subscription": zod.object({
   "id": zod.number(),
   "userId": zod.number(),
@@ -183,6 +191,8 @@ export const AdminGetUserResponse = zod.object({
   "role": zod.string(),
   "note": zod.string().nullish(),
   "createdAt": zod.string(),
+  "loyaltyStamps": zod.number(),
+  "loyaltyTotalRedeemed": zod.number(),
   "subscription": zod.object({
   "id": zod.number(),
   "userId": zod.number(),
@@ -461,6 +471,8 @@ export const AdminUpdateUserRoleResponse = zod.object({
   "role": zod.string(),
   "note": zod.string().nullish(),
   "createdAt": zod.string(),
+  "loyaltyStamps": zod.number(),
+  "loyaltyTotalRedeemed": zod.number(),
   "subscription": zod.object({
   "id": zod.number(),
   "userId": zod.number(),
@@ -485,6 +497,32 @@ export const AdminUpdateUserRoleResponse = zod.object({
   "expiresAt": zod.string().nullable(),
   "note": zod.string().nullish()
 }).optional()
+})
+
+
+/**
+ * @summary Add a loyalty stamp for user (staff)
+ */
+export const AdminAddLoyaltyStampParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const AdminAddLoyaltyStampResponse = zod.object({
+  "loyaltyStamps": zod.number(),
+  "loyaltyTotalRedeemed": zod.number()
+})
+
+
+/**
+ * @summary Redeem 10 loyalty stamps for a free hookah (staff)
+ */
+export const AdminRedeemLoyaltyParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const AdminRedeemLoyaltyResponse = zod.object({
+  "loyaltyStamps": zod.number(),
+  "loyaltyTotalRedeemed": zod.number()
 })
 
 

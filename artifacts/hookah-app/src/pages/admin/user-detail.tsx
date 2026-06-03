@@ -8,6 +8,8 @@ import {
   useAdminUseElectric,
   useAdminGetUserLogs,
   useAdminUpdateUserRole,
+  useAdminAddLoyaltyStamp,
+  useAdminRedeemLoyalty,
   useGetSubscriptionPlans,
   useGetMe,
   getAdminGetUserQueryKey,
@@ -55,6 +57,8 @@ export default function AdminUserDetailPage() {
   const useFruitMutation = useAdminUseFruit();
   const useCheapMutation = useAdminUseCheap();
   const useElectricMutation = useAdminUseElectric();
+  const addStampMutation = useAdminAddLoyaltyStamp();
+  const redeemLoyaltyMutation = useAdminRedeemLoyalty();
 
   const [editMode, setEditMode] = useState(false);
   const [hookahsRemaining, setHookahsRemaining] = useState<number | "">("");
@@ -230,6 +234,78 @@ export default function AdminUserDetailPage() {
             <p className="text-sm text-foreground">{user.note}</p>
           </div>
         )}
+
+        {/* Loyalty card */}
+        {(() => {
+          const stamps = user.loyaltyStamps ?? 0;
+          const redeemed = user.loyaltyTotalRedeemed ?? 0;
+          const ready = stamps >= 10;
+          const loyaltyPending = addStampMutation.isPending || redeemLoyaltyMutation.isPending;
+          return (
+            <div className={`bg-card border rounded-xl p-4 space-y-3 ${ready ? "border-primary/30" : "border-border"}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Карта лояльности</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
+                    {ready ? "🎉 Готово к погашению!" : `${stamps} / 10 марок`}
+                  </p>
+                </div>
+                {redeemed > 0 && (
+                  <span className="text-xs text-muted-foreground bg-muted rounded-full px-2.5 py-1">погашено: {redeemed}×</span>
+                )}
+              </div>
+              <div className="grid grid-cols-10 gap-1">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`aspect-square rounded-full flex items-center justify-center text-xs ${
+                      i < stamps ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground/30"
+                    }`}
+                  >
+                    {i < stamps ? "🌿" : "·"}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button
+                  data-testid="button-add-stamp"
+                  onClick={() =>
+                    addStampMutation.mutate(
+                      { userId },
+                      {
+                        onSuccess: () => { toast({ title: "Марка добавлена", description: `${Math.min(stamps + 1, 10)}/10` }); invalidate(); },
+                        onError: () => toast({ title: "Ошибка", variant: "destructive" }),
+                      }
+                    )
+                  }
+                  disabled={loyaltyPending || stamps >= 10}
+                  className="flex-1 bg-primary/10 text-primary rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                >
+                  🌿 +1 марка
+                </button>
+                <button
+                  data-testid="button-redeem-loyalty"
+                  onClick={() =>
+                    redeemLoyaltyMutation.mutate(
+                      { userId },
+                      {
+                        onSuccess: () => { toast({ title: "Карта погашена!", description: "Кальян за 350 RSD" }); invalidate(); },
+                        onError: (e) => {
+                          const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error ?? "Ошибка";
+                          toast({ title: "Нельзя", description: msg, variant: "destructive" });
+                        },
+                      }
+                    )
+                  }
+                  disabled={loyaltyPending || stamps < 10}
+                  className="flex-1 bg-primary text-primary-foreground rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                >
+                  🎉 Погасить
+                </button>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Subscription */}
         {sub ? (

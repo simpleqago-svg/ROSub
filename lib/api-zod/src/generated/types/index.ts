@@ -12,6 +12,7 @@ export * from './adminStatsSubscriptionsByPlanItem';
 export * from './adminUserView';
 export * from './authResponse';
 export * from './healthStatus';
+export * from './loyaltyStatus';
 export * from './subscriptionActivateInput';
 export * from './subscriptionPlan';
 export * from './subscriptionUsageUpdate';

@@ -5,6 +5,48 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState, useRef } from "react";
 import { Lock } from "lucide-react";
 
+const LOYALTY_TOTAL = 10;
+
+function LoyaltyCard({ stamps, totalRedeemed }: { stamps: number; totalRedeemed: number }) {
+  const ready = stamps >= LOYALTY_TOTAL;
+  return (
+    <div className={`bg-card border rounded-2xl px-5 py-4 space-y-3 ${ready ? "border-primary/40" : "border-border"}`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Карта лояльности</p>
+          <p className="text-sm font-semibold text-foreground mt-0.5">
+            {ready ? "🎉 Готово к погашению!" : `${stamps} из ${LOYALTY_TOTAL} марок`}
+          </p>
+        </div>
+        {totalRedeemed > 0 && (
+          <span className="text-xs text-muted-foreground bg-muted rounded-full px-2.5 py-1">
+            погашено: {totalRedeemed}×
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-10 gap-1.5">
+        {Array.from({ length: LOYALTY_TOTAL }).map((_, i) => (
+          <div
+            key={i}
+            className={`aspect-square rounded-full flex items-center justify-center text-sm ${
+              i < stamps
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground/30"
+            }`}
+          >
+            {i < stamps ? "🌿" : "·"}
+          </div>
+        ))}
+      </div>
+      {ready ? (
+        <p className="text-xs text-primary font-medium text-center">Покажи персоналу — получи кальян за 350 RSD</p>
+      ) : (
+        <p className="text-xs text-muted-foreground text-center">1 кальян = 1 марка · 10 марок = кальян за 350 RSD</p>
+      )}
+    </div>
+  );
+}
+
 function ProgressBar({ remaining, total, label }: { remaining: number; total: number; label: string }) {
   const pct = total > 0 ? Math.round((remaining / total) * 100) : 0;
   const color = pct > 50 ? "bg-primary" : pct > 20 ? "bg-amber-500" : "bg-red-500";
@@ -221,6 +263,9 @@ export default function DashboardPage() {
             </button>
           </div>
         )}
+
+        {/* Loyalty card */}
+        <LoyaltyCard stamps={user.loyaltyStamps} totalRedeemed={user.loyaltyTotalRedeemed} />
 
         {/* Guest note */}
         <div className="bg-card border border-border rounded-xl px-4 py-3 space-y-2">
