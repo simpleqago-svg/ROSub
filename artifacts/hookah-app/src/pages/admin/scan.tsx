@@ -8,6 +8,7 @@ import {
   getAdminGetUsersQueryKey,
   getAdminGetStatsQueryKey,
   useAdminAddLoyaltyStamp,
+  useAdminRedeemLoyalty,
 } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import BackButton from "@/components/back-button";
@@ -32,6 +33,7 @@ export default function AdminScanPage() {
   const useCheapMutation = useAdminUseCheap();
   const useElectricMutation = useAdminUseElectric();
   const addStampMutation = useAdminAddLoyaltyStamp();
+  const redeemLoyaltyMutation = useAdminRedeemLoyalty();
 
   const { data: guestData } = useAdminGetUserByCode(scanned?.code ?? "", {
     query: {
@@ -117,6 +119,7 @@ export default function AdminScanPage() {
 
   const sub = guestData?.subscription;
   const isPending = useHookahMutation.isPending || useFruitMutation.isPending || useCheapMutation.isPending || useElectricMutation.isPending;
+  const loyaltyPending = addStampMutation.isPending || redeemLoyaltyMutation.isPending;
   const cheapLocked = sub ? sub.hookahsRemaining > 0 : false;
   const cheapAvailableDisplay = sub ? (sub.cheapHookahAvailable && sub.hookahsRemaining === 0) : false;
 
@@ -259,35 +262,75 @@ export default function AdminScanPage() {
             )}
 
             {/* Loyalty stamp */}
-            {guestData && (
-              <div className="bg-card border border-border rounded-xl p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Карта лояльности</p>
-                  <span className="text-sm font-semibold text-foreground">
-                    {guestData.loyaltyStamps ?? 0} / 10 🌿
-                  </span>
-                </div>
-                <button
-                  onClick={() =>
-                    addStampMutation.mutate(
-                      { userId: guestData.id },
-                      {
-                        onSuccess: () => {
-                          toast({ title: "Марка добавлена", description: `${Math.min((guestData.loyaltyStamps ?? 0) + 1, 10)}/10` });
-                          invalidate();
-                        },
-                        onError: () => toast({ title: "Ошибка", variant: "destructive" }),
+            {guestData && (() => {
+              const stamps = guestData.loyaltyStamps ?? 0;
+              const ready = stamps >= 10;
+              return (
+                <div className={`bg-card border rounded-xl p-4 space-y-2 ${ready ? "border-primary/40" : "border-border"}`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Карта лояльности</p>
+                    <span className={`text-sm font-semibold ${ready ? "text-primary" : "text-foreground"}`}>
+                      {ready ? "🎉 Готова к погашению!" : `${stamps} / 10 🌿`}
+                    </span>
+                  </div>
+                  {/* stamp grid */}
+                  <div className="grid grid-cols-10 gap-1">
+                    {Array.from({ length: 10 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`aspect-square rounded-full flex items-center justify-center text-[10px] ${
+                          i < stamps ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground/30"
+                        }`}
+                      >
+                        {i < stamps ? "🌿" : "·"}
+                      </div>
+                    ))}
+                  </div>
+                  {ready ? (
+                    <button
+                      onClick={() =>
+                        redeemLoyaltyMutation.mutate(
+                          { userId: guestData.id },
+                          {
+                            onSuccess: () => {
+                              toast({ title: "🎉 Карта погашена!", description: "Кальян за 350 RSD — марки сброшены" });
+                              invalidate();
+                            },
+                            onError: (e) => {
+                              const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error ?? "Ошибка";
+                              toast({ title: "Ошибка", description: msg, variant: "destructive" });
+                            },
+                          }
+                        )
                       }
-                    )
-                  }
-                  disabled={addStampMutation.isPending || (guestData.loyaltyStamps ?? 0) >= 10}
-                  className="w-full bg-primary/10 text-primary border border-primary/20 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
-                >
-                  🌿 +1 марка за посещение
-                  {(guestData.loyaltyStamps ?? 0) >= 10 ? " (карта заполнена)" : ""}
-                </button>
-              </div>
-            )}
+                      disabled={loyaltyPending}
+                      className="w-full bg-primary text-primary-foreground rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                    >
+                      {redeemLoyaltyMutation.isPending ? "Погашаем..." : "🎉 Погасить — кальян за 350 RSD"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        addStampMutation.mutate(
+                          { userId: guestData.id },
+                          {
+                            onSuccess: () => {
+                              toast({ title: "Марка добавлена", description: `${Math.min(stamps + 1, 10)}/10` });
+                              invalidate();
+                            },
+                            onError: () => toast({ title: "Ошибка", variant: "destructive" }),
+                          }
+                        )
+                      }
+                      disabled={loyaltyPending}
+                      className="w-full bg-primary/10 text-primary border border-primary/20 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                    >
+                      {addStampMutation.isPending ? "Добавляем..." : "🌿 +1 марка за посещение"}
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
 
             <button
               onClick={resetScan}
