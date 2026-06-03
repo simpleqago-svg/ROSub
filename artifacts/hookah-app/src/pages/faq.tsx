@@ -30,41 +30,61 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
       {
         q: "BASE — 15 900 RSD",
         a: (
-          <ul className="space-y-1 text-sm text-foreground/80">
-            <li>🌿 8 кальянов</li>
-            <li>💰 Кальян за 350 RSD после окончания</li>
-          </ul>
+          <div className="space-y-2 text-sm text-foreground/80">
+            <ul className="space-y-1">
+              <li>🌿 8 кальянов</li>
+            </ul>
+            <p className="text-xs text-muted-foreground pt-1">После окончания подписки</p>
+            <ul className="space-y-1">
+              <li>💰 Кальян за 350 RSD</li>
+            </ul>
+          </div>
         ),
       },
       {
         q: "STANDARD — 22 900 RSD",
         a: (
-          <ul className="space-y-1 text-sm text-foreground/80">
-            <li>🌿 12 кальянов</li>
-            <li>🍉 1 кальян на фруктовой чаше (входит в общий счёт)</li>
-            <li>💰 Кальян за 350 RSD после окончания</li>
-          </ul>
+          <div className="space-y-2 text-sm text-foreground/80">
+            <ul className="space-y-1">
+              <li>🌿 12 кальянов</li>
+              <li>🍉 1 кальян на фруктовой чаше (входит в общий счёт)</li>
+            </ul>
+            <p className="text-xs text-muted-foreground pt-1">После окончания подписки</p>
+            <ul className="space-y-1">
+              <li>💰 Кальян за 350 RSD</li>
+            </ul>
+          </div>
         ),
       },
       {
         q: "PREMIUM — 29 500 RSD",
         a: (
-          <ul className="space-y-1 text-sm text-foreground/80">
-            <li>🌿 16 кальянов</li>
-            <li>🍉 До 4 кальянов на фруктовой чаше (входят в общий счёт)</li>
-            <li>💰 Кальян за 350 RSD после окончания</li>
-          </ul>
+          <div className="space-y-2 text-sm text-foreground/80">
+            <ul className="space-y-1">
+              <li>🌿 16 кальянов</li>
+              <li>🍉 До 4 кальянов на фруктовой чаше (входят в общий счёт)</li>
+            </ul>
+            <p className="text-xs text-muted-foreground pt-1">После окончания подписки</p>
+            <ul className="space-y-1">
+              <li>💰 Кальян за 350 RSD</li>
+            </ul>
+          </div>
         ),
       },
       {
         q: "ELITE — 35 500 RSD",
         a: (
-          <ul className="space-y-1 text-sm text-foreground/80">
-            <li>🌿 20 кальянов</li>
-            <li>🍉 До 4 кальянов на фруктовой чаше (входят в общий счёт)</li>
-            <li>⚡ 1 кальян на электронной чаше (не списывается из лимита)</li>
-            <li>💰 Кальян за 350 RSD после окончания</li>
-          </ul>
+          <div className="space-y-2 text-sm text-foreground/80">
+            <ul className="space-y-1">
+              <li>🌿 20 кальянов</li>
+              <li>🍉 До 4 кальянов на фруктовой чаше (входят в общий счёт)</li>
+              <li>⚡ 1 кальян на электронной чаше (не списывается из лимита)</li>
+            </ul>
+            <p className="text-xs text-muted-foreground pt-1">После окончания подписки</p>
+            <ul className="space-y-1">
+              <li>💰 Кальян за 350 RSD</li>
+            </ul>
+          </div>
         ),
       },
     ],
@@ -114,8 +134,8 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         a: "Подписка считается использованной. Можно оформить новую или заказывать кальяны по стандартной цене.",
       },
       {
-        q: "Подписка привязана к одному человеку?",
-        a: "Да. Подписка привязана к твоему аккаунту и не может быть передана другому гостю.",
+        q: "Можно ли шэрить подписку с друзьями?",
+        a: "Да! Подписка не привязана к конкретному человеку — кальяны из твоего пакета могут курить и твои друзья. Просто покажи свой QR-код сотруднику, и он спишет кальян с твоего баланса.",
       },
       {
         q: "Что если я хочу оформить подписку?",
