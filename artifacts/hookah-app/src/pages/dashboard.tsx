@@ -267,6 +267,43 @@ export default function DashboardPage() {
         {/* Loyalty card */}
         <LoyaltyCard stamps={user.loyaltyStamps} totalRedeemed={user.loyaltyTotalRedeemed} />
 
+        {/* Menu */}
+        <a
+          href="https://rodina.bar/menueng"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between bg-card border border-border rounded-2xl px-5 py-4 active:opacity-80 transition-opacity"
+        >
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Rodina Bar</p>
+            <p className="font-semibold text-foreground mt-0.5">Меню 🍽</p>
+          </div>
+          <span className="text-muted-foreground text-lg">→</span>
+        </a>
+
+        {/* Reviews */}
+        <div className="bg-card border border-border rounded-2xl px-5 py-4 space-y-3">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Нравится у нас? Оставьте отзыв</p>
+          <div className="grid grid-cols-2 gap-2">
+            <a
+              href="https://www.google.com/maps/place/Rodina+bar/@44.8280279,20.4541935,17z/data=!4m8!3m7!1s0x475a652444a672d5:0x6061ba1274c387f7!8m2!3d44.8280279!4d20.4541935!9m1!1b1!16s%2Fg%2F11w8zbghnl?entry=ttu&g_ep=EgoyMDI2MDUzMS4wIKXMDSoASAFQAw%3D%3D"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 bg-muted rounded-xl py-3 text-sm font-medium text-foreground active:opacity-70 transition-opacity"
+            >
+              <span>🗺</span> Google Maps
+            </a>
+            <a
+              href="https://yandex.com/maps/org/rodina/236461535280/?ll=20.454091%2C44.828028&z=16.95"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 bg-muted rounded-xl py-3 text-sm font-medium text-foreground active:opacity-70 transition-opacity"
+            >
+              <span>🗺</span> Яндекс
+            </a>
+          </div>
+        </div>
+
         {/* Guest note */}
         <div className="bg-card border border-border rounded-xl px-4 py-3 space-y-2">
           <div className="flex items-center justify-between">

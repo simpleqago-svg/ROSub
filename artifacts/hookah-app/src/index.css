@@ -56,7 +56,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* DARK THEME — warm amber hookah bar */
+/* DARK THEME — Rodina bar */
 :root {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
@@ -64,39 +64,39 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Deep dark background like the inside of a hookah lounge */
-  --background: 20 15% 8%;
-  --foreground: 36 30% 92%;
-  --border: 30 15% 18%;
-  --card: 22 18% 11%;
-  --card-foreground: 36 30% 92%;
-  --card-border: 30 15% 20%;
-  --sidebar: 22 18% 9%;
-  --sidebar-foreground: 36 25% 85%;
-  --sidebar-border: 30 12% 16%;
-  --sidebar-primary: 36 85% 55%;
-  --sidebar-primary-foreground: 20 15% 8%;
-  --sidebar-accent: 30 20% 16%;
-  --sidebar-accent-foreground: 36 30% 92%;
-  --sidebar-ring: 36 85% 55%;
-  --popover: 22 18% 11%;
-  --popover-foreground: 36 30% 92%;
-  --popover-border: 30 15% 20%;
+  /* Pure dark background */
+  --background: 0 0% 5%;
+  --foreground: 0 0% 93%;
+  --border: 0 0% 14%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 93%;
+  --card-border: 0 0% 16%;
+  --sidebar: 0 0% 6%;
+  --sidebar-foreground: 0 0% 85%;
+  --sidebar-border: 0 0% 13%;
+  --sidebar-primary: 36 90% 55%;
+  --sidebar-primary-foreground: 0 0% 5%;
+  --sidebar-accent: 0 0% 14%;
+  --sidebar-accent-foreground: 0 0% 93%;
+  --sidebar-ring: 36 90% 55%;
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 93%;
+  --popover-border: 0 0% 16%;
 
-  /* Warm amber gold as primary */
-  --primary: 36 85% 55%;
-  --primary-foreground: 20 15% 8%;
+  /* Amber gold as primary */
+  --primary: 36 90% 55%;
+  --primary-foreground: 0 0% 5%;
 
-  --secondary: 30 20% 18%;
-  --secondary-foreground: 36 25% 85%;
-  --muted: 25 12% 15%;
-  --muted-foreground: 30 15% 55%;
-  --accent: 36 70% 45%;
-  --accent-foreground: 20 15% 8%;
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 0 0% 85%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 48%;
+  --accent: 36 75% 45%;
+  --accent-foreground: 0 0% 5%;
   --destructive: 0 65% 50%;
-  --destructive-foreground: 36 30% 92%;
-  --input: 30 15% 20%;
-  --ring: 36 85% 55%;
+  --destructive-foreground: 0 0% 93%;
+  --input: 0 0% 16%;
+  --ring: 36 90% 55%;
 
   --chart-1: 36 85% 55%;
   --chart-2: 150 50% 45%;
