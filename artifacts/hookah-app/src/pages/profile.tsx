@@ -2,7 +2,7 @@ import { useGetMe, useGetMySubscription } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
-import { LogOut, ChevronRight, Calendar, Hash } from "lucide-react";
+import { LogOut, ChevronRight, Calendar, Hash, HelpCircle } from "lucide-react";
 
 function formatMemberNumber(id: number): string {
   return `#${String(id).padStart(6, "0")}`;
@@ -145,6 +145,21 @@ export default function ProfilePage() {
             <p className="text-sm text-foreground">{sub.note}</p>
           </div>
         )}
+
+        {/* FAQ */}
+        <button
+          onClick={() => setLocation("/faq")}
+          className="w-full flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3.5 hover:bg-card/80 transition-colors"
+        >
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <HelpCircle className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-foreground">Как это работает?</p>
+            <p className="text-xs text-muted-foreground">Всё о подписке Rodina Club</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+        </button>
 
         {/* Logout */}
         <button
