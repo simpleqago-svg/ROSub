@@ -1,5 +1,7 @@
 import { useGetSubscriptionPlans } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { HelpCircle, ChevronRight } from "lucide-react";
+import { useLocation } from "wouter";
 
 const LEVEL_COLORS = [
   "from-zinc-900 to-zinc-800",
@@ -17,6 +19,7 @@ const LEVEL_BORDERS = [
 
 export default function PlansPage() {
   const { data: plans, isLoading } = useGetSubscriptionPlans();
+  const [, setLocation] = useLocation();
 
   return (
     <div className="min-h-screen pb-24">
@@ -101,6 +104,21 @@ export default function PlansPage() {
             Обратитесь к персоналу для активации подписки.
           </p>
         </div>
+
+        {/* FAQ link */}
+        <button
+          onClick={() => setLocation("/faq")}
+          className="w-full flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3.5 hover:bg-card/80 transition-colors"
+        >
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <HelpCircle className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-foreground">Как это работает?</p>
+            <p className="text-xs text-muted-foreground">Всё о подписке Rodina Club</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+        </button>
       </div>
     </div>
   );
