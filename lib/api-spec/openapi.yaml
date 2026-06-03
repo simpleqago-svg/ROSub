@@ -231,6 +231,83 @@ paths:
         "403":
           description: Forbidden
 
+  /admin/users/{userId}/subscription/cancel:
+    post:
+      operationId: adminCancelSubscription
+      tags: [admin]
+      summary: Cancel active subscription (super-admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Subscription cancelled
+        "403":
+          description: Forbidden
+        "404":
+          description: No active subscription
+
+  /admin/users/{userId}/subscription/freeze:
+    post:
+      operationId: adminFreezeSubscription
+      tags: [admin]
+      summary: Freeze subscription for N days (super-admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionFreezeInput"
+      responses:
+        "200":
+          description: Subscription frozen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDetail"
+        "403":
+          description: Forbidden
+        "404":
+          description: No active subscription
+
+  /admin/users/{userId}/subscription/change-plan:
+    post:
+      operationId: adminChangePlan
+      tags: [admin]
+      summary: Change subscription plan level (super-admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionChangePlanInput"
+      responses:
+        "200":
+          description: Plan changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDetail"
+        "403":
+          description: Forbidden
+        "404":
+          description: No active subscription
+
   /admin/users/{userId}/use-hookah:
     post:
       operationId: adminUseHookah
@@ -577,6 +654,8 @@ components:
           type: string
         expiresAt:
           type: ["string", "null"]
+        frozenUntil:
+          type: ["string", "null"]
         note:
           type: ["string", "null"]
         isLegacy:
@@ -592,6 +671,22 @@ components:
           type: ["string", "null"]
         isLegacy:
           type: boolean
+
+    SubscriptionFreezeInput:
+      type: object
+      required: [days]
+      properties:
+        days:
+          type: integer
+          minimum: 1
+          maximum: 7
+
+    SubscriptionChangePlanInput:
+      type: object
+      required: [planId]
+      properties:
+        planId:
+          type: integer
 
     SubscriptionUsageUpdate:
       type: object

@@ -15,6 +15,7 @@ export const userSubscriptionsTable = pgTable("user_subscriptions", {
   totalHookahsUsed: integer("total_hookahs_used").notNull().default(0),
   activatedAt: timestamp("activated_at", { withTimezone: true }).notNull().defaultNow(),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
+  frozenUntil: timestamp("frozen_until", { withTimezone: true }),
   note: text("note"),
   active: boolean("active").notNull().default(true),
   isLegacy: boolean("is_legacy").notNull().default(false),

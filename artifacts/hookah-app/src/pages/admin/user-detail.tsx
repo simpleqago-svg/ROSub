@@ -10,6 +10,9 @@ import {
   useAdminUpdateUserRole,
   useAdminAddLoyaltyStamp,
   useAdminRedeemLoyalty,
+  useAdminCancelSubscription,
+  useAdminFreezeSubscription,
+  useAdminChangePlan,
   useGetSubscriptionPlans,
   useGetMe,
   getAdminGetUserQueryKey,
@@ -60,6 +63,9 @@ export default function AdminUserDetailPage() {
   const useElectricMutation = useAdminUseElectric();
   const addStampMutation = useAdminAddLoyaltyStamp();
   const redeemLoyaltyMutation = useAdminRedeemLoyalty();
+  const cancelMutation = useAdminCancelSubscription();
+  const freezeMutation = useAdminFreezeSubscription();
+  const changePlanMutation = useAdminChangePlan();
 
   const [editMode, setEditMode] = useState(false);
   const [hookahsRemaining, setHookahsRemaining] = useState<number | "">("");
@@ -70,6 +76,9 @@ export default function AdminUserDetailPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<number | "">("");
   const [activateMode, setActivateMode] = useState(false);
   const [isLegacy, setIsLegacy] = useState(false);
+  const [superAdminAction, setSuperAdminAction] = useState<"changePlan" | "freeze" | "cancel" | null>(null);
+  const [freezeDays, setFreezeDays] = useState(3);
+  const [newPlanId, setNewPlanId] = useState<number | "">("");
 
   const openEdit = () => {
     if (!user?.subscription) return;
@@ -316,6 +325,11 @@ export default function AdminUserDetailPage() {
                       Старые цены
                     </span>
                   )}
+                  {sub.frozenUntil && new Date(sub.frozenUntil) > new Date() && (
+                    <span className="text-xs bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-medium">
+                      ❄️ до {new Date(sub.frozenUntil).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}
+                    </span>
+                  )}
                 </div>
                 {sub.activatedAt && (
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -500,6 +514,131 @@ export default function AdminUserDetailPage() {
                     </button>
                   </div>
                 </div>
+
+                {/* Super-admin subscription management */}
+                {isSuperAdmin && (
+                  <div className="pt-2 border-t border-border space-y-2">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Управление подпиской</p>
+                    {superAdminAction === null && (
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          onClick={() => { setSuperAdminAction("changePlan"); setNewPlanId(""); }}
+                          className="bg-muted text-foreground rounded-xl py-2 text-xs font-medium"
+                        >
+                          🔄 Уровень
+                        </button>
+                        <button
+                          onClick={() => { setSuperAdminAction("freeze"); setFreezeDays(3); }}
+                          className="bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl py-2 text-xs font-medium"
+                        >
+                          ❄️ Заморозить
+                        </button>
+                        <button
+                          onClick={() => setSuperAdminAction("cancel")}
+                          className="bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl py-2 text-xs font-medium"
+                        >
+                          ✕ Отменить
+                        </button>
+                      </div>
+                    )}
+
+                    {superAdminAction === "changePlan" && (
+                      <div className="space-y-2">
+                        <select
+                          value={newPlanId}
+                          onChange={(e) => setNewPlanId(e.target.value === "" ? "" : Number(e.target.value))}
+                          disabled={plansLoading}
+                          className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">Выберите новый уровень...</option>
+                          {plans?.filter((p) => p.id !== sub.planId).map((p) => (
+                            <option key={p.id} value={p.id}>{p.nameRu}</option>
+                          ))}
+                        </select>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              if (!newPlanId) return;
+                              changePlanMutation.mutate(
+                                { userId, data: { planId: newPlanId as number } },
+                                {
+                                  onSuccess: () => { toast({ title: "Уровень изменён" }); setSuperAdminAction(null); invalidate(); },
+                                  onError: (e) => { const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error ?? "Ошибка"; toast({ title: "Ошибка", description: msg, variant: "destructive" }); },
+                                }
+                              );
+                            }}
+                            disabled={!newPlanId || changePlanMutation.isPending}
+                            className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 text-sm font-medium disabled:opacity-60"
+                          >
+                            {changePlanMutation.isPending ? "Меняем..." : "Подтвердить"}
+                          </button>
+                          <button onClick={() => setSuperAdminAction(null)} className="px-4 bg-muted text-muted-foreground rounded-lg py-2 text-sm">Отмена</button>
+                        </div>
+                      </div>
+                    )}
+
+                    {superAdminAction === "freeze" && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <p className="text-sm text-foreground whitespace-nowrap">Заморозить на:</p>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {[1, 2, 3, 5, 7].map((d) => (
+                              <button
+                                key={d}
+                                onClick={() => setFreezeDays(d)}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${freezeDays === d ? "bg-blue-500/20 text-blue-400 border-blue-500/40" : "bg-muted text-muted-foreground border-transparent"}`}
+                              >
+                                {d} {d === 1 ? "день" : d < 5 ? "дня" : "дней"}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              freezeMutation.mutate(
+                                { userId, data: { days: freezeDays } },
+                                {
+                                  onSuccess: () => { toast({ title: `Заморожена на ${freezeDays} дн.`, description: "Срок действия продлён" }); setSuperAdminAction(null); invalidate(); },
+                                  onError: (e) => { const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error ?? "Ошибка"; toast({ title: "Ошибка", description: msg, variant: "destructive" }); },
+                                }
+                              );
+                            }}
+                            disabled={freezeMutation.isPending}
+                            className="flex-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg py-2 text-sm font-medium disabled:opacity-60"
+                          >
+                            {freezeMutation.isPending ? "Замораживаем..." : "❄️ Заморозить"}
+                          </button>
+                          <button onClick={() => setSuperAdminAction(null)} className="px-4 bg-muted text-muted-foreground rounded-lg py-2 text-sm">Отмена</button>
+                        </div>
+                      </div>
+                    )}
+
+                    {superAdminAction === "cancel" && (
+                      <div className="space-y-2">
+                        <p className="text-sm text-red-400">Отменить подписку? Все оставшиеся кальяны будут потеряны.</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              cancelMutation.mutate(
+                                { userId },
+                                {
+                                  onSuccess: () => { toast({ title: "Подписка отменена", variant: "destructive" }); setSuperAdminAction(null); invalidate(); },
+                                  onError: (e) => { const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error ?? "Ошибка"; toast({ title: "Ошибка", description: msg, variant: "destructive" }); },
+                                }
+                              );
+                            }}
+                            disabled={cancelMutation.isPending}
+                            className="flex-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg py-2 text-sm font-medium disabled:opacity-60"
+                          >
+                            {cancelMutation.isPending ? "Отменяем..." : "Да, отменить"}
+                          </button>
+                          <button onClick={() => setSuperAdminAction(null)} className="px-4 bg-muted text-muted-foreground rounded-lg py-2 text-sm">Нет</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>

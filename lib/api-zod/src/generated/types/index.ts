@@ -14,6 +14,8 @@ export * from './authResponse';
 export * from './healthStatus';
 export * from './loyaltyStatus';
 export * from './subscriptionActivateInput';
+export * from './subscriptionChangePlanInput';
+export * from './subscriptionFreezeInput';
 export * from './subscriptionPlan';
 export * from './subscriptionUsageUpdate';
 export * from './telegramAuthInput';

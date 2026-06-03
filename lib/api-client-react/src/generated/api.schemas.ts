@@ -85,6 +85,8 @@ export interface UserSubscriptionDetail {
   /** @nullable */
   expiresAt: string | null;
   /** @nullable */
+  frozenUntil?: string | null;
+  /** @nullable */
   note?: string | null;
   isLegacy: boolean;
 }
@@ -94,6 +96,18 @@ export interface SubscriptionActivateInput {
   /** @nullable */
   note?: string | null;
   isLegacy?: boolean;
+}
+
+export interface SubscriptionFreezeInput {
+  /**
+     * @minimum 1
+     * @maximum 7
+     */
+  days: number;
+}
+
+export interface SubscriptionChangePlanInput {
+  planId: number;
 }
 
 export interface SubscriptionUsageUpdate {

@@ -27,6 +27,8 @@ import type {
   HealthStatus,
   LoyaltyStatus,
   SubscriptionActivateInput,
+  SubscriptionChangePlanInput,
+  SubscriptionFreezeInput,
   SubscriptionPlan,
   SubscriptionUsageUpdate,
   TelegramAuthInput,
@@ -872,6 +874,220 @@ export const useAdminUpdateSubscription = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getAdminUpdateSubscriptionMutationOptions(options));
+    }
+
+export const getAdminCancelSubscriptionUrl = (userId: number,) => {
+
+
+
+
+  return `/api/admin/users/${userId}/subscription/cancel`
+}
+
+/**
+ * @summary Cancel active subscription (super-admin)
+ */
+export const adminCancelSubscription = async (userId: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getAdminCancelSubscriptionUrl(userId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAdminCancelSubscriptionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminCancelSubscription>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminCancelSubscription>>, TError,{userId: number}, TContext> => {
+
+const mutationKey = ['adminCancelSubscription'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminCancelSubscription>>, {userId: number}> = (props) => {
+          const {userId} = props ?? {};
+
+          return  adminCancelSubscription(userId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminCancelSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof adminCancelSubscription>>>
+
+    export type AdminCancelSubscriptionMutationError = ErrorType<void>
+
+    /**
+ * @summary Cancel active subscription (super-admin)
+ */
+export const useAdminCancelSubscription = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminCancelSubscription>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminCancelSubscription>>,
+        TError,
+        {userId: number},
+        TContext
+      > => {
+      return useMutation(getAdminCancelSubscriptionMutationOptions(options));
+    }
+
+export const getAdminFreezeSubscriptionUrl = (userId: number,) => {
+
+
+
+
+  return `/api/admin/users/${userId}/subscription/freeze`
+}
+
+/**
+ * @summary Freeze subscription for N days (super-admin)
+ */
+export const adminFreezeSubscription = async (userId: number,
+    subscriptionFreezeInput: SubscriptionFreezeInput, options?: RequestInit): Promise<UserSubscriptionDetail> => {
+
+  return customFetch<UserSubscriptionDetail>(getAdminFreezeSubscriptionUrl(userId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      subscriptionFreezeInput,)
+  }
+);}
+
+
+
+
+export const getAdminFreezeSubscriptionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminFreezeSubscription>>, TError,{userId: number;data: BodyType<SubscriptionFreezeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminFreezeSubscription>>, TError,{userId: number;data: BodyType<SubscriptionFreezeInput>}, TContext> => {
+
+const mutationKey = ['adminFreezeSubscription'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminFreezeSubscription>>, {userId: number;data: BodyType<SubscriptionFreezeInput>}> = (props) => {
+          const {userId,data} = props ?? {};
+
+          return  adminFreezeSubscription(userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminFreezeSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof adminFreezeSubscription>>>
+    export type AdminFreezeSubscriptionMutationBody = BodyType<SubscriptionFreezeInput>
+    export type AdminFreezeSubscriptionMutationError = ErrorType<void>
+
+    /**
+ * @summary Freeze subscription for N days (super-admin)
+ */
+export const useAdminFreezeSubscription = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminFreezeSubscription>>, TError,{userId: number;data: BodyType<SubscriptionFreezeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminFreezeSubscription>>,
+        TError,
+        {userId: number;data: BodyType<SubscriptionFreezeInput>},
+        TContext
+      > => {
+      return useMutation(getAdminFreezeSubscriptionMutationOptions(options));
+    }
+
+export const getAdminChangePlanUrl = (userId: number,) => {
+
+
+
+
+  return `/api/admin/users/${userId}/subscription/change-plan`
+}
+
+/**
+ * @summary Change subscription plan level (super-admin)
+ */
+export const adminChangePlan = async (userId: number,
+    subscriptionChangePlanInput: SubscriptionChangePlanInput, options?: RequestInit): Promise<UserSubscriptionDetail> => {
+
+  return customFetch<UserSubscriptionDetail>(getAdminChangePlanUrl(userId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      subscriptionChangePlanInput,)
+  }
+);}
+
+
+
+
+export const getAdminChangePlanMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminChangePlan>>, TError,{userId: number;data: BodyType<SubscriptionChangePlanInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminChangePlan>>, TError,{userId: number;data: BodyType<SubscriptionChangePlanInput>}, TContext> => {
+
+const mutationKey = ['adminChangePlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminChangePlan>>, {userId: number;data: BodyType<SubscriptionChangePlanInput>}> = (props) => {
+          const {userId,data} = props ?? {};
+
+          return  adminChangePlan(userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminChangePlanMutationResult = NonNullable<Awaited<ReturnType<typeof adminChangePlan>>>
+    export type AdminChangePlanMutationBody = BodyType<SubscriptionChangePlanInput>
+    export type AdminChangePlanMutationError = ErrorType<void>
+
+    /**
+ * @summary Change subscription plan level (super-admin)
+ */
+export const useAdminChangePlan = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminChangePlan>>, TError,{userId: number;data: BodyType<SubscriptionChangePlanInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminChangePlan>>,
+        TError,
+        {userId: number;data: BodyType<SubscriptionChangePlanInput>},
+        TContext
+      > => {
+      return useMutation(getAdminChangePlanMutationOptions(options));
     }
 
 export const getAdminUseHookahUrl = (userId: number,) => {

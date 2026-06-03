@@ -20,6 +20,8 @@ export interface UserSubscriptionDetail {
   /** @nullable */
   expiresAt: string | null;
   /** @nullable */
+  frozenUntil?: string | null;
+  /** @nullable */
   note?: string | null;
   isLegacy: boolean;
 }

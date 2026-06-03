@@ -39,6 +39,7 @@ function buildSubDetail(sub: typeof userSubscriptionsTable.$inferSelect, plan: t
     cheapHookahAvailable: sub.cheapHookahAvailable,
     activatedAt: sub.activatedAt.toISOString(),
     expiresAt: sub.expiresAt?.toISOString() ?? null,
+    frozenUntil: sub.frozenUntil?.toISOString() ?? null,
     note: sub.note ?? null,
     isLegacy: sub.isLegacy,
   };
@@ -235,6 +236,96 @@ router.patch("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin
 
   const row = rows[0];
   res.json(buildSubDetail(updated, row.subscription_plans!));
+});
+
+router.post("/admin/users/:userId/subscription/cancel", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
+  const params = AdminGetUserParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const [cancelled] = await db
+    .update(userSubscriptionsTable)
+    .set({ active: false })
+    .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)))
+    .returning();
+
+  if (!cancelled) { res.status(404).json({ error: "No active subscription" }); return; }
+
+  const staff = getAuthedUser(req);
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "cancel", "Подписка отменена");
+
+  res.status(204).send();
+});
+
+router.post("/admin/users/:userId/subscription/freeze", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
+  const params = AdminGetUserParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const { days } = req.body as { days?: number };
+  if (!days || !Number.isInteger(days) || days < 1 || days > 7) {
+    res.status(400).json({ error: "days must be integer 1–7" }); return;
+  }
+
+  const rows = await db
+    .select()
+    .from(userSubscriptionsTable)
+    .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
+    .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)));
+
+  if (rows.length === 0) { res.status(404).json({ error: "No active subscription" }); return; }
+
+  const row = rows[0];
+  const frozenUntil = new Date(Date.now() + days * 86_400_000);
+  const newExpiresAt = row.user_subscriptions.expiresAt
+    ? new Date(row.user_subscriptions.expiresAt.getTime() + days * 86_400_000)
+    : null;
+
+  const [updated] = await db
+    .update(userSubscriptionsTable)
+    .set({ frozenUntil, ...(newExpiresAt ? { expiresAt: newExpiresAt } : {}) })
+    .where(eq(userSubscriptionsTable.id, row.user_subscriptions.id))
+    .returning();
+
+  const staff = getAuthedUser(req);
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "freeze", `Подписка заморожена на ${days} дн.`);
+
+  res.json(buildSubDetail(updated, row.subscription_plans!));
+});
+
+router.post("/admin/users/:userId/subscription/change-plan", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
+  const params = AdminGetUserParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const { planId } = req.body as { planId?: number };
+  if (!planId || !Number.isInteger(planId)) { res.status(400).json({ error: "planId required" }); return; }
+
+  const [plan] = await db.select().from(subscriptionPlansTable).where(eq(subscriptionPlansTable.id, planId));
+  if (!plan) { res.status(404).json({ error: "Plan not found" }); return; }
+
+  const [existing] = await db
+    .select()
+    .from(userSubscriptionsTable)
+    .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)));
+
+  if (!existing) { res.status(404).json({ error: "No active subscription" }); return; }
+
+  const [updated] = await db
+    .update(userSubscriptionsTable)
+    .set({
+      planId: plan.id,
+      hookahsRemaining: plan.hookahCount,
+      fruitHookahsRemaining: plan.bonusHookahFruit,
+      electricAvailable: plan.bonusElectric > 0,
+    })
+    .where(eq(userSubscriptionsTable.id, existing.id))
+    .returning();
+
+  const staff = getAuthedUser(req);
+  const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
+  await logAction(staff.id, staffName, params.data.userId, "manual_adjust", `Смена уровня: → ${plan.nameRu}`);
+
+  res.json(buildSubDetail(updated, plan));
 });
 
 router.post("/admin/users/:userId/use-hookah", requireAuth, requireAdmin, async (req, res): Promise<void> => {

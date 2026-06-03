@@ -7,6 +7,7 @@ import {
   getAdminGetUserByCodeQueryKey,
   getAdminGetUsersQueryKey,
   getAdminGetStatsQueryKey,
+  useAdminAddLoyaltyStamp,
 } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import BackButton from "@/components/back-button";
@@ -30,6 +31,7 @@ export default function AdminScanPage() {
   const useFruitMutation = useAdminUseFruit();
   const useCheapMutation = useAdminUseCheap();
   const useElectricMutation = useAdminUseElectric();
+  const addStampMutation = useAdminAddLoyaltyStamp();
 
   const { data: guestData } = useAdminGetUserByCode(scanned?.code ?? "", {
     query: {
@@ -253,6 +255,37 @@ export default function AdminScanPage() {
                     ⚡ Эл. чаша
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* Loyalty stamp */}
+            {guestData && (
+              <div className="bg-card border border-border rounded-xl p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Карта лояльности</p>
+                  <span className="text-sm font-semibold text-foreground">
+                    {guestData.loyaltyStamps ?? 0} / 10 🌿
+                  </span>
+                </div>
+                <button
+                  onClick={() =>
+                    addStampMutation.mutate(
+                      { userId: guestData.id },
+                      {
+                        onSuccess: () => {
+                          toast({ title: "Марка добавлена", description: `${Math.min((guestData.loyaltyStamps ?? 0) + 1, 10)}/10` });
+                          invalidate();
+                        },
+                        onError: () => toast({ title: "Ошибка", variant: "destructive" }),
+                      }
+                    )
+                  }
+                  disabled={addStampMutation.isPending || (guestData.loyaltyStamps ?? 0) >= 10}
+                  className="w-full bg-primary/10 text-primary border border-primary/20 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                >
+                  🌿 +1 марка за посещение
+                  {(guestData.loyaltyStamps ?? 0) >= 10 ? " (карта заполнена)" : ""}
+                </button>
               </div>
             )}
 
