@@ -156,8 +156,8 @@ export default function AdminScanPage() {
                   {guestData.username && <p className="text-xs text-muted-foreground">@{guestData.username}</p>}
                 </div>
                 {guestData.note && (
-                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
-                    <p className="text-xs text-amber-400 mb-0.5">Заметка гостя</p>
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
+                    <p className="text-xs text-primary mb-0.5">Заметка гостя</p>
                     <p className="text-sm text-foreground">{guestData.note}</p>
                   </div>
                 )}
@@ -230,7 +230,7 @@ export default function AdminScanPage() {
                     data-testid="button-use-fruit"
                     onClick={() => doAction(useFruitMutation, scanned.userId, "Фрукт списан")}
                     disabled={isPending || sub.fruitHookahsRemaining <= 0 || sub.hookahsRemaining <= 0}
-                    className="w-full bg-amber-600 text-white rounded-xl py-3 font-semibold disabled:opacity-40"
+                    className="w-full bg-primary/20 text-primary border border-primary/30 rounded-xl py-3 font-semibold disabled:opacity-40"
                   >
                     🍉 Фрукт (−1 кальян и −1 фруктовый)
                     {sub.fruitHookahsRemaining <= 0 ? " (нет)" : ` (ост. ${sub.fruitHookahsRemaining})`}
@@ -241,7 +241,7 @@ export default function AdminScanPage() {
                     data-testid="button-use-cheap"
                     onClick={() => doAction(useCheapMutation, scanned.userId, "350 RSD кальян списан")}
                     disabled={isPending || !cheapAvailableDisplay}
-                    className="bg-zinc-700 text-white rounded-xl py-3 font-semibold disabled:opacity-40"
+                    className="bg-secondary text-secondary-foreground rounded-xl py-3 font-semibold disabled:opacity-40"
                   >
                     💰 350 RSD
                   </button>
@@ -249,7 +249,7 @@ export default function AdminScanPage() {
                     data-testid="button-use-electric"
                     onClick={() => doAction(useElectricMutation, scanned.userId, "Эл. чаша списана")}
                     disabled={isPending || !sub.electricAvailable}
-                    className="bg-zinc-700 text-white rounded-xl py-3 font-semibold disabled:opacity-40"
+                    className="bg-secondary text-secondary-foreground rounded-xl py-3 font-semibold disabled:opacity-40"
                   >
                     ⚡ Эл. чаша
                   </button>

@@ -49,7 +49,7 @@ function LoyaltyCard({ stamps, totalRedeemed }: { stamps: number; totalRedeemed:
 
 function ProgressBar({ remaining, total, label }: { remaining: number; total: number; label: string }) {
   const pct = total > 0 ? Math.round((remaining / total) * 100) : 0;
-  const color = pct > 50 ? "bg-primary" : pct > 20 ? "bg-amber-500" : "bg-red-500";
+  const color = pct > 50 ? "bg-primary" : pct > 20 ? "bg-primary/60" : "bg-red-500";
   return (
     <div className="bg-card border border-border rounded-xl px-4 py-3 space-y-2">
       <div className="flex justify-between items-baseline">

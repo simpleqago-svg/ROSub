@@ -229,8 +229,8 @@ export default function AdminUserDetailPage() {
 
         {/* Guest note (read-only for admin) */}
         {user.note && (
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
-            <p className="text-xs text-amber-400 mb-1">Заметка гостя</p>
+          <div className="bg-primary/10 border border-primary/20 rounded-xl px-4 py-3">
+            <p className="text-xs text-primary mb-1">Заметка гостя</p>
             <p className="text-sm text-foreground">{user.note}</p>
           </div>
         )}
@@ -472,7 +472,7 @@ export default function AdminUserDetailPage() {
                         sub.hookahsRemaining <= 0 ? "Кальяны закончились" : null
                       )}
                       disabled={isPending || sub.fruitHookahsRemaining <= 0 || sub.hookahsRemaining <= 0}
-                      className="w-full bg-amber-600 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                      className="w-full bg-primary/20 text-primary border border-primary/30 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
                     >
                       🍉 Фрукт (−1 кальян и −1 фруктовый)
                       {sub.fruitHookahsRemaining <= 0 ? " (нет)" : ` (ост. ${sub.fruitHookahsRemaining})`}
@@ -483,7 +483,7 @@ export default function AdminUserDetailPage() {
                       data-testid="button-use-cheap"
                       onClick={() => doAction(useCheapMutation, "350 RSD кальян списан")}
                       disabled={isPending || !sub.cheapHookahAvailable}
-                      className="bg-zinc-700 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                      className="bg-secondary text-secondary-foreground rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
                     >
                       💰 350 RSD
                     </button>
@@ -491,7 +491,7 @@ export default function AdminUserDetailPage() {
                       data-testid="button-use-electric"
                       onClick={() => doAction(useElectricMutation, "Электронная чаша списана")}
                       disabled={isPending || !sub.electricAvailable}
-                      className="bg-zinc-700 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                      className="bg-secondary text-secondary-foreground rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
                     >
                       ⚡ Эл. чаша
                     </button>

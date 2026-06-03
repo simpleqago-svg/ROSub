@@ -2,17 +2,17 @@ import { useGetSubscriptionPlans } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const LEVEL_COLORS = [
-  "from-zinc-800 to-zinc-700",
-  "from-amber-900/60 to-amber-800/40",
-  "from-amber-700/60 to-amber-600/40",
-  "from-yellow-600/60 to-yellow-500/40",
+  "from-zinc-900 to-zinc-800",
+  "from-zinc-900 to-amber-900/40",
+  "from-amber-900/50 to-amber-800/30",
+  "from-amber-800/60 to-amber-700/40",
 ];
 
 const LEVEL_BORDERS = [
-  "border-zinc-600",
-  "border-amber-700/60",
+  "border-zinc-700",
+  "border-amber-800/50",
+  "border-amber-600/50",
   "border-amber-500/60",
-  "border-yellow-400/80",
 ];
 
 export default function PlansPage() {

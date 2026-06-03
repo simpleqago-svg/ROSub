@@ -13,7 +13,7 @@ const ACTION_LABELS: Record<string, string> = {
 
 const ACTION_COLORS: Record<string, string> = {
   hookah: "text-primary",
-  fruit: "text-amber-400",
+  fruit: "text-primary",
   cheap: "text-zinc-400",
   electric: "text-blue-400",
   activate: "text-green-400",
