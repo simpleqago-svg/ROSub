@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, subscriptionPlansTable, userSubscriptionsTable, actionLogsTable } from "@workspace/db";
-import { eq, and, count, sum, desc, aliasedTable } from "drizzle-orm";
+import { eq, and, count, sum, desc, aliasedTable, ne } from "drizzle-orm";
 import { requireAuth, requireAdmin, requireSuperAdmin, getAuthedUser } from "../lib/auth";
 import {
   AdminGetUsersResponse,
@@ -585,6 +585,27 @@ router.post("/admin/users/:userId/loyalty/redeem", requireAuth, requireAdmin, as
   await logAction(staff.id, staffName, params.data.userId, "loyalty_redeem", `Погашена карта лояльности — кальян за 350 RSD (всего: ${updated.loyaltyTotalRedeemed})`);
 
   res.json(AdminRedeemLoyaltyResponse.parse({ loyaltyStamps: updated.loyaltyStamps, loyaltyTotalRedeemed: updated.loyaltyTotalRedeemed }));
+});
+
+// TEMPORARY: purge test data — remove after use
+router.post("/admin/purge-test-data", requireSuperAdmin, async (req, res): Promise<void> => {
+  const keepTelegramId = 304953881;
+  const [keepUser] = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.telegramId, keepTelegramId));
+
+  if (!keepUser) {
+    res.status(404).json({ error: "Admin user not found" });
+    return;
+  }
+
+  await db.delete(userSubscriptionsTable).where(ne(userSubscriptionsTable.userId, keepUser.id));
+  await db.delete(actionLogsTable);
+  await db.delete(usersTable).where(ne(usersTable.id, keepUser.id));
+  await db.update(usersTable).set({ role: "admin" }).where(eq(usersTable.id, keepUser.id));
+
+  res.json({ ok: true, keptUserId: keepUser.id, message: "Cleaned up all test data" });
 });
 
 // TEMPORARY: one-shot admin promotion — remove after use
