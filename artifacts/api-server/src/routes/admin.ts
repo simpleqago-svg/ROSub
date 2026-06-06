@@ -587,6 +587,57 @@ router.post("/admin/users/:userId/loyalty/redeem", requireAuth, requireAdmin, as
   res.json(AdminRedeemLoyaltyResponse.parse({ loyaltyStamps: updated.loyaltyStamps, loyaltyTotalRedeemed: updated.loyaltyTotalRedeemed }));
 });
 
+// Export all action logs as CSV
+router.get("/admin/export-logs", requireAdmin, async (_req, res): Promise<void> => {
+  const rows = await db
+    .select({
+      id: actionLogsTable.id,
+      action: actionLogsTable.action,
+      description: actionLogsTable.description,
+      createdAt: actionLogsTable.createdAt,
+      staffFirstName: staffAlias.firstName,
+      staffLastName: staffAlias.lastName,
+      guestFirstName: guestAlias.firstName,
+      guestLastName: guestAlias.lastName,
+    })
+    .from(actionLogsTable)
+    .leftJoin(staffAlias, eq(actionLogsTable.staffId, staffAlias.id))
+    .leftJoin(guestAlias, eq(actionLogsTable.guestId, guestAlias.id))
+    .orderBy(desc(actionLogsTable.createdAt));
+
+  const ACTION_RU: Record<string, string> = {
+    hookah: "Кальян",
+    fruit: "Фруктовая чаша",
+    cheap: "Кальян за 350 RSD",
+    electric: "Электронная чаша",
+    activate: "Активация подписки",
+    manual_adjust: "Корректировка",
+    loyalty_stamp: "Марка лояльности",
+    loyalty_redeem: "Погашение карты лояльности",
+    cancel: "Отмена подписки",
+    freeze: "Заморозка",
+    change_plan: "Смена плана",
+  };
+
+  const escape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+
+  const header = ["ID", "Дата и время", "Действие", "Гость", "Сотрудник", "Описание"].join(";");
+  const lines = rows.map((r) => {
+    const dt = r.createdAt.toLocaleString("ru-RU", { timeZone: "Europe/Belgrade" });
+    const action = ACTION_RU[r.action] ?? r.action;
+    const guest = r.guestFirstName ? `${r.guestFirstName}${r.guestLastName ? " " + r.guestLastName : ""}` : "";
+    const staff = r.staffFirstName ? `${r.staffFirstName}${r.staffLastName ? " " + r.staffLastName : ""}` : "";
+    return [r.id, dt, escape(action), escape(guest), escape(staff), escape(r.description ?? "")].join(";");
+  });
+
+  const csv = "\uFEFF" + [header, ...lines].join("\n"); // BOM for Excel
+  const filename = `rodina-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.send(csv);
+});
+
 // TEMPORARY: purge test data — remove after use
 router.post("/admin/purge-test-data", requireSuperAdmin, async (req, res): Promise<void> => {
   const keepTelegramId = 304953881;

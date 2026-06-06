@@ -2,7 +2,7 @@ import { useAdminGetStats, useAdminGetLogs, useGetMe } from "@workspace/api-clie
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { QrCode, ChevronRight } from "lucide-react";
+import { QrCode, ChevronRight, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const ACTION_LABELS: Record<string, string> = {
@@ -149,6 +149,33 @@ export default function AdminPage() {
             )}
           </>
         ) : null}
+
+        {/* Export logs */}
+        <button
+          onClick={() => {
+            const token = localStorage.getItem("auth_token");
+            const a = document.createElement("a");
+            a.href = `/api/admin/export-logs`;
+            // Pass token via custom header isn't possible for plain <a> download,
+            // so we fetch as blob and trigger download
+            fetch("/api/admin/export-logs", {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+              .then((r) => r.blob())
+              .then((blob) => {
+                const url = URL.createObjectURL(blob);
+                a.href = url;
+                a.download = `rodina-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              })
+              .catch(() => toast({ title: "Ошибка выгрузки", variant: "destructive" }));
+          }}
+          className="w-full bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-foreground font-medium hover:bg-card/80 transition-colors"
+        >
+          <Download className="w-4 h-4 text-muted-foreground" />
+          <span className="flex-1 text-left">Выгрузить отчётность (CSV)</span>
+        </button>
 
         {/* TEMPORARY: purge test data */}
         {!purged ? (
