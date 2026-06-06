@@ -1,6 +1,6 @@
 import { useAdminGetStats, useAdminGetLogs, useGetMe } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QrCode, ChevronRight, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -19,32 +19,6 @@ export default function AdminPage() {
   const { data: user, error } = useGetMe();
   const { data: stats, isLoading } = useAdminGetStats();
   const { data: logs } = useAdminGetLogs();
-  const [purging, setPurging] = useState(false);
-  const [purged, setPurged] = useState(false);
-
-  const handlePurge = async () => {
-    if (!confirm("Удалить всех тестовых пользователей и их данные? Оставить только себя.")) return;
-    setPurging(true);
-    try {
-      const token = localStorage.getItem("auth_token");
-      const res = await fetch("/api/admin/purge-test-data", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json() as { ok?: boolean; message?: string; error?: string };
-      if (data.ok) {
-        setPurged(true);
-        toast({ title: "✅ База очищена", description: data.message });
-      } else {
-        toast({ title: "Ошибка", description: data.error, variant: "destructive" });
-      }
-    } catch {
-      toast({ title: "Ошибка сети", variant: "destructive" });
-    } finally {
-      setPurging(false);
-    }
-  };
-
   useEffect(() => {
     if (error) {
       localStorage.removeItem("auth_token");
@@ -176,21 +150,6 @@ export default function AdminPage() {
           <Download className="w-4 h-4 text-muted-foreground" />
           <span className="flex-1 text-left">Выгрузить отчётность (CSV)</span>
         </button>
-
-        {/* TEMPORARY: purge test data */}
-        {!purged ? (
-          <button
-            onClick={handlePurge}
-            disabled={purging}
-            className="w-full bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 text-sm font-medium disabled:opacity-40"
-          >
-            {purging ? "Очищаем..." : "🗑 Очистить тестовые данные (оставить только меня)"}
-          </button>
-        ) : (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-center text-sm text-green-400 font-medium">
-            ✅ База очищена
-          </div>
-        )}
 
         {/* Single action: QR scan */}
         <button

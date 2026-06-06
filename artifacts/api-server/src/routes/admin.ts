@@ -588,7 +588,7 @@ router.post("/admin/users/:userId/loyalty/redeem", requireAuth, requireAdmin, as
 });
 
 // Export all action logs as CSV
-router.get("/admin/export-logs", requireAdmin, async (_req, res): Promise<void> => {
+router.get("/admin/export-logs", requireAuth, requireAdmin, async (_req, res): Promise<void> => {
   const rows = await db
     .select({
       id: actionLogsTable.id,
@@ -638,8 +638,13 @@ router.get("/admin/export-logs", requireAdmin, async (_req, res): Promise<void> 
   res.send(csv);
 });
 
-// TEMPORARY: purge test data — remove after use
-router.post("/admin/purge-test-data", requireSuperAdmin, async (req, res): Promise<void> => {
+// TEMPORARY: secret-authenticated purge — remove after use
+router.post("/admin/purge-test-data", async (req, res): Promise<void> => {
+  const { secret } = req.body as { secret?: string };
+  if (!secret || secret !== process.env.SESSION_SECRET) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
   const keepTelegramId = 304953881;
   const [keepUser] = await db
     .select({ id: usersTable.id })
@@ -657,29 +662,6 @@ router.post("/admin/purge-test-data", requireSuperAdmin, async (req, res): Promi
   await db.update(usersTable).set({ role: "admin" }).where(eq(usersTable.id, keepUser.id));
 
   res.json({ ok: true, keptUserId: keepUser.id, message: "Cleaned up all test data" });
-});
-
-// TEMPORARY: one-shot admin promotion — remove after use
-router.post("/admin/set-admin", async (req, res): Promise<void> => {
-  const { secret, telegramId } = req.body as { secret?: string; telegramId?: number };
-  if (!secret || secret !== process.env.SESSION_SECRET) {
-    res.status(403).json({ error: "Forbidden" });
-    return;
-  }
-  if (!telegramId) {
-    res.status(400).json({ error: "telegramId required" });
-    return;
-  }
-  const [user] = await db
-    .update(usersTable)
-    .set({ role: "admin" })
-    .where(eq(usersTable.telegramId, telegramId))
-    .returning({ id: usersTable.id, telegramId: usersTable.telegramId, role: usersTable.role });
-  if (!user) {
-    res.status(404).json({ error: "User not found" });
-    return;
-  }
-  res.json({ ok: true, ...user });
 });
 
 export default router;
