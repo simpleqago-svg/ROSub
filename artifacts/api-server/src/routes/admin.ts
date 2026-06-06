@@ -587,8 +587,15 @@ router.post("/admin/users/:userId/loyalty/redeem", requireAuth, requireAdmin, as
   res.json(AdminRedeemLoyaltyResponse.parse({ loyaltyStamps: updated.loyaltyStamps, loyaltyTotalRedeemed: updated.loyaltyTotalRedeemed }));
 });
 
-// Export all action logs as CSV
-router.get("/admin/export-logs", requireAuth, requireAdmin, async (_req, res): Promise<void> => {
+// Export all action logs as CSV — also accepts ?token= for Telegram Mini App downloads
+router.get("/admin/export-logs", async (req, res, next): Promise<void> => {
+  // Inject query-param token into Authorization header if present
+  const qToken = req.query.token as string | undefined;
+  if (qToken && !req.headers.authorization) {
+    req.headers.authorization = `Bearer ${qToken}`;
+  }
+  next();
+}, requireAuth, requireAdmin, async (_req, res): Promise<void> => {
   const rows = await db
     .select({
       id: actionLogsTable.id,

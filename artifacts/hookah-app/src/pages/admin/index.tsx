@@ -128,22 +128,23 @@ export default function AdminPage() {
         <button
           onClick={() => {
             const token = localStorage.getItem("auth_token");
-            const a = document.createElement("a");
-            a.href = `/api/admin/export-logs`;
-            // Pass token via custom header isn't possible for plain <a> download,
-            // so we fetch as blob and trigger download
-            fetch("/api/admin/export-logs", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-              .then((r) => r.blob())
-              .then((blob) => {
-                const url = URL.createObjectURL(blob);
-                a.href = url;
-                a.download = `rodina-logs-${new Date().toISOString().slice(0, 10)}.csv`;
-                a.click();
-                URL.revokeObjectURL(url);
-              })
-              .catch(() => toast({ title: "Ошибка выгрузки", variant: "destructive" }));
+            if (!token) {
+              toast({ title: "Нет токена авторизации", variant: "destructive" });
+              return;
+            }
+            const tg = (window as Window & { Telegram?: { WebApp?: { openLink?: (url: string) => void } } }).Telegram?.WebApp;
+            const baseUrl = window.location.origin;
+            const url = `${baseUrl}/api/admin/export-logs?token=${encodeURIComponent(token)}`;
+            if (tg?.openLink) {
+              // Telegram Mini App — открываем в обычном браузере где работает скачивание
+              tg.openLink(url);
+            } else {
+              // Обычный браузер — скачиваем напрямую
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `rodina-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+            }
           }}
           className="w-full bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-foreground font-medium hover:bg-card/80 transition-colors"
         >
