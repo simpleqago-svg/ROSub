@@ -341,7 +341,7 @@ export default function DashboardPage() {
               <span>🗺</span> Google Maps
             </a>
             <a
-              href="https://yandex.ru/maps/org/236461535280?si=36q1v0dqy9afdh4cy88wwnkfug"
+              href="https://yandex.com/maps/-/CPdubW7g"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 bg-muted rounded-xl py-3 text-sm font-medium text-foreground active:opacity-70 transition-opacity"
