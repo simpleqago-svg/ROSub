@@ -519,6 +519,33 @@ paths:
         "403":
           description: Forbidden
 
+  /admin/logs/{id}:
+    delete:
+      operationId: adminDeleteLog
+      tags: [admin]
+      summary: Delete an action log entry (super admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required: [ok]
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
   /admin/stats:
     get:
       operationId: adminGetStats

@@ -708,6 +708,18 @@ export const AdminGetLogsResponse = zod.array(AdminGetLogsResponseItem)
 
 
 /**
+ * @summary Delete an action log entry (super admin only)
+ */
+export const AdminDeleteLogParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AdminDeleteLogResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+/**
  * @summary Get overall stats (admin)
  */
 export const AdminGetStatsResponse = zod.object({

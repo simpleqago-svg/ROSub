@@ -1,9 +1,10 @@
-import { useAdminGetStats, useAdminGetLogs, useGetMe } from "@workspace/api-client-react";
+import { useAdminGetStats, useAdminGetLogs, useAdminDeleteLog, useGetMe, getAdminGetLogsQueryKey } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { QrCode, ChevronRight, Download } from "lucide-react";
+import { QrCode, ChevronRight, Download, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ACTION_LABELS: Record<string, string> = {
   hookah: "🌿 Кальян",
@@ -16,9 +17,24 @@ const ACTION_LABELS: Record<string, string> = {
 
 export default function AdminPage() {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const { data: user, error } = useGetMe();
   const { data: stats, isLoading } = useAdminGetStats();
   const { data: logs } = useAdminGetLogs();
+  const deleteLogMutation = useAdminDeleteLog();
+  const isSuperAdmin = user?.role === "admin";
+
+  const handleDeleteLog = (id: number) => {
+    if (!confirm("Удалить эту запись?")) return;
+    deleteLogMutation.mutate({ id }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getAdminGetLogsQueryKey() });
+        toast({ title: "Запись удалена" });
+      },
+      onError: () => toast({ title: "Ошибка удаления", variant: "destructive" }),
+    });
+  };
+
   useEffect(() => {
     if (error) {
       localStorage.removeItem("auth_token");
@@ -176,7 +192,7 @@ export default function AdminPage() {
               </button>
             </div>
             {recentLogs.map((log) => (
-              <div key={log.id} className="flex items-start justify-between gap-2 py-1.5 border-b border-border last:border-0">
+              <div key={log.id} className="flex items-start gap-2 py-1.5 border-b border-border last:border-0">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-sm text-foreground">{ACTION_LABELS[log.action] ?? log.action}</span>
@@ -193,6 +209,15 @@ export default function AdminPage() {
                   {" "}
                   {new Date(log.createdAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
                 </p>
+                {isSuperAdmin && (
+                  <button
+                    onClick={() => handleDeleteLog(log.id)}
+                    className="flex-shrink-0 p-1 text-muted-foreground hover:text-destructive transition-colors"
+                    title="Удалить"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             ))}
           </div>

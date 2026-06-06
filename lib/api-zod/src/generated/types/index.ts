@@ -7,6 +7,7 @@
  */
 
 export * from './actionLog';
+export * from './adminDeleteLog200';
 export * from './adminStats';
 export * from './adminStatsSubscriptionsByPlanItem';
 export * from './adminUserView';

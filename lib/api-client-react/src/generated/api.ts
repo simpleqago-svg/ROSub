@@ -21,6 +21,7 @@ import type {
 
 import type {
   ActionLog,
+  AdminDeleteLog200,
   AdminStats,
   AdminUserView,
   AuthResponse,
@@ -1735,6 +1736,76 @@ export function useAdminGetLogs<TData = Awaited<ReturnType<typeof adminGetLogs>>
 
 
 
+
+export const getAdminDeleteLogUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/logs/${id}`
+}
+
+/**
+ * @summary Delete an action log entry (super admin only)
+ */
+export const adminDeleteLog = async (id: number, options?: RequestInit): Promise<AdminDeleteLog200> => {
+
+  return customFetch<AdminDeleteLog200>(getAdminDeleteLogUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getAdminDeleteLogMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDeleteLog>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminDeleteLog>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['adminDeleteLog'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminDeleteLog>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  adminDeleteLog(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminDeleteLogMutationResult = NonNullable<Awaited<ReturnType<typeof adminDeleteLog>>>
+
+    export type AdminDeleteLogMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete an action log entry (super admin only)
+ */
+export const useAdminDeleteLog = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDeleteLog>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminDeleteLog>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getAdminDeleteLogMutationOptions(options));
+    }
 
 export const getAdminGetStatsUrl = () => {
 

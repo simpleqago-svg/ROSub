@@ -702,4 +702,19 @@ router.get("/admin/export-logs", async (req, res, next): Promise<void> => {
 });
 
 
+// Delete a single action log entry — super admin only
+router.delete("/admin/logs/:id", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id), 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const deleted = await db.delete(actionLogsTable).where(eq(actionLogsTable.id, id)).returning();
+  if (deleted.length === 0) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  res.json({ ok: true });
+});
+
 export default router;
