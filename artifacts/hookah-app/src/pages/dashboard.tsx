@@ -67,11 +67,12 @@ function BoolCard({ label, available, locked, lockedHint, unavailableHint }: { l
   if (locked) {
     return (
       <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">{label}</span>
           <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-semibold text-sm text-muted-foreground">{lockedHint ?? "Заблокировано"}</span>
         </div>
+        <span className="font-semibold text-sm text-muted-foreground">Недоступно</span>
+        {lockedHint && <span className="text-xs text-muted-foreground/70 leading-tight">{lockedHint}</span>}
       </div>
     );
   }
@@ -205,6 +206,13 @@ export default function DashboardPage() {
               const isWarning = daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
               return (
                 <>
+                  {sub.frozenUntil && new Date(sub.frozenUntil) > new Date() && (
+                    <div className="bg-sky-500/10 border border-sky-500/30 rounded-xl px-4 py-2.5 flex items-center gap-2">
+                      <span className="text-sm font-semibold text-sky-400">
+                        ⏸ Заморожена до {new Date(sub.frozenUntil).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}
+                      </span>
+                    </div>
+                  )}
                   {isExpired && (
                     <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2.5 flex items-center gap-2">
                       <span className="text-sm font-semibold text-red-400">Подписка истекла</span>

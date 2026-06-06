@@ -45,6 +45,7 @@ router.get("/subscriptions/my", requireAuth, async (req, res): Promise<void> => 
     cheapHookahAvailable: sub.cheapHookahAvailable,
     activatedAt: sub.activatedAt.toISOString(),
     expiresAt: sub.expiresAt?.toISOString() ?? null,
+    frozenUntil: sub.frozenUntil?.toISOString() ?? null,
     note: sub.note ?? null,
     isLegacy: sub.isLegacy,
   }));
