@@ -340,14 +340,20 @@ export default function DashboardPage() {
             >
               <span>🗺</span> Google Maps
             </a>
-            <a
-              href="https://yandex.com/maps/org/rodina/236461535280/reviews/?ll=20.454091%2C44.828028&z=16"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => {
+                const url = "https://yandex.com/maps/org/rodina/236461535280/reviews/?ll=20.454091%2C44.828028&z=16";
+                const tg = (window as Window & { Telegram?: { WebApp?: { openLink?: (url: string) => void } } }).Telegram?.WebApp;
+                if (tg?.openLink) {
+                  tg.openLink(url);
+                } else {
+                  window.open(url, "_blank");
+                }
+              }}
               className="flex items-center justify-center gap-2 bg-muted rounded-xl py-3 text-sm font-medium text-foreground active:opacity-70 transition-opacity"
             >
               <span>🗺</span> Яндекс
-            </a>
+            </button>
           </div>
         </div>
 
