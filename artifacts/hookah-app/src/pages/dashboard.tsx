@@ -341,7 +341,7 @@ export default function DashboardPage() {
               <span>🗺</span> Google Maps
             </a>
             <a
-              href="https://yandex.com/maps/-/CPdubW7g"
+              href="https://yandex.com/maps/org/rodina/236461535280/reviews/?ll=20.454091%2C44.828028&z=16"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 bg-muted rounded-xl py-3 text-sm font-medium text-foreground active:opacity-70 transition-opacity"
