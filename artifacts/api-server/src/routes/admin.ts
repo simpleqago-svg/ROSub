@@ -613,36 +613,92 @@ router.get("/admin/export-logs", async (req, res, next): Promise<void> => {
     .orderBy(desc(actionLogsTable.createdAt));
 
   const ACTION_RU: Record<string, string> = {
-    hookah: "Кальян",
-    fruit: "Фруктовая чаша",
-    cheap: "Кальян за 350 RSD",
-    electric: "Электронная чаша",
-    activate: "Активация подписки",
-    manual_adjust: "Корректировка",
-    loyalty_stamp: "Марка лояльности",
-    loyalty_redeem: "Погашение карты лояльности",
-    cancel: "Отмена подписки",
-    freeze: "Заморозка",
-    change_plan: "Смена плана",
+    hookah: "🌿 Кальян",
+    fruit: "🍉 Фруктовая чаша",
+    cheap: "💰 Кальян за 350 RSD",
+    electric: "⚡ Электронная чаша",
+    activate: "✅ Активация подписки",
+    manual_adjust: "✏️ Корректировка",
+    loyalty_stamp: "🌿 Марка лояльности",
+    loyalty_redeem: "🎉 Погашение карты",
+    cancel: "❌ Отмена подписки",
+    freeze: "⏸ Заморозка",
+    change_plan: "🔄 Смена плана",
   };
 
-  const escape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+  // Summary counts
+  const counts: Record<string, number> = {};
+  for (const r of rows) {
+    counts[r.action] = (counts[r.action] ?? 0) + 1;
+  }
 
-  const header = ["ID", "Дата и время", "Действие", "Гость", "Сотрудник", "Описание"].join(";");
-  const lines = rows.map((r) => {
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  const tableRows = rows.map((r) => {
     const dt = r.createdAt.toLocaleString("ru-RU", { timeZone: "Europe/Belgrade" });
     const action = ACTION_RU[r.action] ?? r.action;
-    const guest = r.guestFirstName ? `${r.guestFirstName}${r.guestLastName ? " " + r.guestLastName : ""}` : "";
-    const staff = r.staffFirstName ? `${r.staffFirstName}${r.staffLastName ? " " + r.staffLastName : ""}` : "";
-    return [r.id, dt, escape(action), escape(guest), escape(staff), escape(r.description ?? "")].join(";");
-  });
+    const guest = r.guestFirstName ? esc(`${r.guestFirstName}${r.guestLastName ? " " + r.guestLastName : ""}`) : "—";
+    const staff = r.staffFirstName ? esc(`${r.staffFirstName}${r.staffLastName ? " " + r.staffLastName : ""}`) : "—";
+    const desc = esc(r.description ?? "");
+    return `<tr><td>${dt}</td><td>${action}</td><td>${guest}</td><td>${staff}</td><td class="desc">${desc}</td></tr>`;
+  }).join("\n");
 
-  const csv = "\uFEFF" + [header, ...lines].join("\n"); // BOM for Excel
-  const filename = `rodina-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+  const summaryRows = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([action, cnt]) => `<tr><td>${ACTION_RU[action] ?? action}</td><td><strong>${cnt}</strong></td></tr>`)
+    .join("\n");
 
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-  res.send(csv);
+  const generatedAt = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Belgrade" });
+
+  const html = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rodina — Отчётность</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; color: #1a1208; background: #fff; padding: 24px 16px; }
+  h1 { font-size: 22px; font-weight: 700; color: #b45309; margin-bottom: 2px; }
+  .subtitle { font-size: 12px; color: #78716c; margin-bottom: 20px; }
+  .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #78716c; margin: 20px 0 8px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th { background: #fef3c7; color: #92400e; font-size: 11px; text-align: left; padding: 7px 10px; border-bottom: 2px solid #fcd34d; }
+  td { padding: 6px 10px; border-bottom: 1px solid #f5f5f4; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafaf9; }
+  .desc { color: #57534e; font-size: 12px; max-width: 220px; }
+  .summary-table { max-width: 320px; }
+  .summary-table td:last-child { text-align: right; }
+  .total { font-size: 12px; color: #78716c; margin-top: 8px; }
+  @media print {
+    body { padding: 12px; }
+    .no-print { display: none; }
+  }
+  .print-btn { display: inline-block; margin-bottom: 20px; background: #b45309; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">🖨 Сохранить / Распечатать</button>
+<h1>Rodina — Отчётность</h1>
+<div class="subtitle">Сгенерировано: ${generatedAt} · Всего записей: ${rows.length}</div>
+
+<div class="section-title">Итоги по действиям</div>
+<table class="summary-table">
+  <thead><tr><th>Действие</th><th>Кол-во</th></tr></thead>
+  <tbody>${summaryRows}</tbody>
+</table>
+
+<div class="section-title">Все действия (новые сверху)</div>
+<table>
+  <thead><tr><th>Дата и время</th><th>Действие</th><th>Гость</th><th>Сотрудник</th><th>Описание</th></tr></thead>
+  <tbody>${tableRows || '<tr><td colspan="5" style="text-align:center;color:#78716c;padding:20px">Нет данных</td></tr>'}</tbody>
+</table>
+<div class="total">Rodina Bar, Белград · ${generatedAt}</div>
+</body>
+</html>`;
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(html);
 });
 
 
