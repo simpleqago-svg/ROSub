@@ -342,7 +342,7 @@ export default function DashboardPage() {
             </a>
             <button
               onClick={() => {
-                const url = "https://yandex.com/maps/org/rodina/236461535280/reviews/?ll=20.454091%2C44.828028&z=16";
+                const url = "https://yandex.ru/maps/org/236461535280/";
                 const tg = (window as Window & { Telegram?: { WebApp?: { openLink?: (url: string) => void } } }).Telegram?.WebApp;
                 if (tg?.openLink) {
                   tg.openLink(url);
