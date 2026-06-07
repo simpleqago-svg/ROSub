@@ -232,6 +232,18 @@ export const AdminGetUserResponse = zod.object({
 
 
 /**
+ * @summary Delete a user and all their data (super admin only)
+ */
+export const AdminDeleteUserParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const AdminDeleteUserResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+/**
  * @summary Find user by display code (admin)
  */
 export const AdminGetUserByCodeParams = zod.object({

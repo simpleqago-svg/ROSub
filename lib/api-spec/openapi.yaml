@@ -157,6 +157,31 @@ paths:
                 $ref: "#/components/schemas/AdminUserView"
         "404":
           description: Not found
+    delete:
+      operationId: adminDeleteUser
+      tags: [admin]
+      summary: Delete a user and all their data (super admin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required: [ok]
+        "403":
+          description: Forbidden
+        "404":
+          description: User not found
 
   /admin/users/by-code/{code}:
     get:

@@ -311,8 +311,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Loyalty card */}
-        <LoyaltyCard stamps={user.loyaltyStamps} totalRedeemed={user.loyaltyTotalRedeemed} />
+        {/* Loyalty card — only when no active subscription */}
+        {!sub && <LoyaltyCard stamps={user.loyaltyStamps} totalRedeemed={user.loyaltyTotalRedeemed} />}
 
         {/* Menu */}
         <a

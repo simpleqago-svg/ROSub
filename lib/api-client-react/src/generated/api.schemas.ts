@@ -191,6 +191,10 @@ export interface AdminStats {
   subscriptionsByPlan?: AdminStatsSubscriptionsByPlanItem[];
 }
 
+export type AdminDeleteUser200 = {
+  ok: boolean;
+};
+
 export type AdminDeleteLog200 = {
   ok: boolean;
 };

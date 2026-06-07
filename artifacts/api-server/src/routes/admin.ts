@@ -238,13 +238,42 @@ router.patch("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin
   res.json(buildSubDetail(updated, row.subscription_plans!));
 });
 
+// Delete user and all their data — super admin only
+router.delete("/admin/users/:userId", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
+  const params = AdminGetUserParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, params.data.userId));
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  // Prevent self-deletion
+  const staff = getAuthedUser(req);
+  if (staff.id === params.data.userId) {
+    res.status(400).json({ error: "Нельзя удалить себя" });
+    return;
+  }
+
+  // Delete in order: logs, subscriptions, user
+  await db.delete(actionLogsTable).where(eq(actionLogsTable.guestId, params.data.userId));
+  await db.delete(userSubscriptionsTable).where(eq(userSubscriptionsTable.userId, params.data.userId));
+  await db.delete(usersTable).where(eq(usersTable.id, params.data.userId));
+
+  res.json({ ok: true });
+});
+
 router.post("/admin/users/:userId/subscription/cancel", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
   const params = AdminGetUserParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const [cancelled] = await db
     .update(userSubscriptionsTable)
-    .set({ active: false })
+    .set({
+      active: false,
+      hookahsRemaining: 0,
+      fruitHookahsRemaining: 0,
+      electricAvailable: false,
+      cheapHookahAvailable: false,
+    })
     .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)))
     .returning();
 
@@ -252,7 +281,7 @@ router.post("/admin/users/:userId/subscription/cancel", requireAuth, requireSupe
 
   const staff = getAuthedUser(req);
   const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
-  await logAction(staff.id, staffName, params.data.userId, "cancel", "Подписка отменена");
+  await logAction(staff.id, staffName, params.data.userId, "cancel", "Подписка отменена — остатки списаны");
 
   res.status(204).send();
 });
