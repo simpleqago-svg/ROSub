@@ -35,7 +35,7 @@ app.use("/api", router);
 
 // Staff guide — open in browser and Ctrl+P → Save as PDF
 app.get("/api/staff-guide", (_req, res) => {
-  const html = readFileSync(join(process.cwd(), "../../STAFF_GUIDE.html"), "utf-8");
+  const html = readFileSync(join(__dirname, "../public/staff-guide.html"), "utf-8");
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.send(html);
 });
