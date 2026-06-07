@@ -29,7 +29,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
     emoji: "📋",
     items: [
       {
-        q: "Добро пожаловать / DOBRODOSLI! — 15 900 RSD",
+        q: "Добро пожаловать / DOBRODOSLI! — 16 250 RSD",
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
@@ -43,7 +43,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         ),
       },
       {
-        q: "Тебе как всегда? / GDE SI KOMSIJA? — 22 900 RSD",
+        q: "Тебе как всегда? / GDE SI KOMSIJA? — 22 850 RSD",
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
@@ -58,7 +58,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         ),
       },
       {
-        q: "Ну рассказывай / SAMO RECI — 29 300 RSD",
+        q: "Ну рассказывай / SAMO RECI — 29 250 RSD",
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
@@ -73,7 +73,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         ),
       },
       {
-        q: "Да ты легенда! / SVE ZA TEBE — 35 300 RSD",
+        q: "Да ты легенда! / SVE ZA TEBE — 35 250 RSD",
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
