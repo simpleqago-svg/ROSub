@@ -1,6 +1,8 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
+import { readFileSync } from "fs";
+import { join } from "path";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -30,5 +32,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+// Staff guide — open in browser and Ctrl+P → Save as PDF
+app.get("/api/staff-guide", (_req, res) => {
+  const html = readFileSync(join(process.cwd(), "../../STAFF_GUIDE.html"), "utf-8");
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(html);
+});
 
 export default app;

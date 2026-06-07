@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rodina Club — Гайдлайн для персонала</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 48px;
+    background: #fff;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 32px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid #f0a800;
+  }
+  h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #b87a00;
+    margin-top: 32px;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #f0e8c8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 18px;
+    margin-bottom: 6px;
+  }
+  p { margin-bottom: 10px; }
+  ul, ol {
+    margin: 8px 0 12px 22px;
+  }
+  li { margin-bottom: 4px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 13px;
+  }
+  th {
+    background: #fdf3d0;
+    color: #7a5200;
+    font-weight: 700;
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid #e8d88a;
+  }
+  td {
+    padding: 7px 12px;
+    border: 1px solid #e8e8e8;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafafa; }
+  blockquote {
+    background: #fffbea;
+    border-left: 4px solid #f0a800;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 13px;
+    color: #555;
+    border-radius: 0 4px 4px 0;
+  }
+  .badge {
+    display: inline-block;
+    background: #f0a800;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .section { margin-bottom: 28px; }
+  strong { font-weight: 700; }
+  @media print {
+    body { padding: 20px 24px; }
+    h2 { page-break-before: auto; }
+    .no-break { page-break-inside: avoid; }
+    @page { margin: 20mm 15mm; }
+  }
+  .print-btn {
+    position: fixed;
+    top: 20px; right: 20px;
+    background: #f0a800;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .print-btn:hover { background: #d49000; }
+  @media print { .print-btn { display: none; } }
+</style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">🖨 Сохранить / Распечатать</button>
+
+<h1>Rodina Club</h1>
+<p class="subtitle">Гайдлайн для персонала &nbsp;·&nbsp; Версия: июнь 2025</p>
+
+<div class="section">
+<h2>Что это</h2>
+<p>Rodina Club — система учёта подписок через Telegram Mini App.</p>
+<ul>
+  <li><strong>Гость</strong> открывает бот <code>@rodinasubbot</code> → видит QR-код и свои остатки</li>
+  <li><strong>Персонал</strong> сканирует QR → списывает кальян</li>
+  <li><strong>Администратор</strong> управляет подписками, смотрит статистику, правит вручную</li>
+</ul>
+<blockquote>Приложение работает 24/7 на сервере — не зависит от чьего-либо ноутбука.</blockquote>
+</div>
+
+<div class="section no-break">
+<h2>Роли в системе</h2>
+<table>
+  <tr><th>Роль</th><th>Кто</th><th>Что может</th></tr>
+  <tr><td><strong>Гость</strong></td><td>Клиенты клуба</td><td>Смотреть QR, остатки, свой тариф</td></tr>
+  <tr><td><strong>Персонал</strong></td><td>Сотрудники</td><td>Сканировать QR, списывать, ставить марки лояльности</td></tr>
+  <tr><td><strong>Администратор</strong></td><td>Управляющий</td><td>Всё что персонал + подписки, корректировки, статистика, удаление</td></tr>
+</table>
+<blockquote>Роли назначает администратор через карточку гостя в панели.</blockquote>
+</div>
+
+<div class="section no-break">
+<h2>Как войти (персонал)</h2>
+<ol>
+  <li>Открыть <strong>@rodinasubbot</strong> в Telegram</li>
+  <li>Нажать <strong>Start</strong> → кнопку «Открыть приложение»</li>
+  <li>Система определит тебя автоматически через Telegram-аккаунт</li>
+  <li>Если видишь гостевой экран вместо админки — сообщи администратору</li>
+</ol>
+</div>
+
+<div class="section">
+<h2>QR-код гостя</h2>
+<p><strong>QR-код есть у каждого зарегистрированного гостя — всегда</strong>, независимо от того, есть у него подписка или нет. Гость показывает QR, ты сканируешь.</p>
+<p>Если гость не может найти приложение: он должен написать боту <strong>@rodinasubbot</strong> → Start.</p>
+</div>
+
+<div class="section">
+<h2>Основное действие: списание</h2>
+
+<h3>1. Сканировать QR</h3>
+<p>Нажать <strong>«Сканировать QR-код»</strong> в Админ-панели → поднести камеру к телефону гостя.</p>
+<p>Или ввести ID вручную в поле под кнопкой (если камера не работает).</p>
+
+<h3>2. Выбрать тип списания</h3>
+<table>
+  <tr><th>Кнопка</th><th>Что списывает</th></tr>
+  <tr><td>🌿 <strong>Кальян</strong></td><td>Один стандартный кальян с подписки</td></tr>
+  <tr><td>🍉 <strong>Фруктовая чаша</strong></td><td>−1 кальян и −1 фруктовая чаша одновременно</td></tr>
+  <tr><td>💰 <strong>350 RSD</strong></td><td>Кальян за 350 RSD (раз в посещение)</td></tr>
+  <tr><td>⚡ <strong>Электронная чаша</strong></td><td>Электронная чаша (раз в посещение)</td></tr>
+</table>
+<p>Если баланс равен 0 — кнопка неактивна, система не даст списать.</p>
+
+<h3>Заморозка</h3>
+<p>Если у гостя активна заморозка — в карточке показан замок 🔒. Списание заблокировано до её окончания.</p>
+</div>
+
+<div class="section no-break">
+<h2>Карта лояльности</h2>
+<p>Карта лояльности — <strong>только для гостей без активной подписки</strong>. Если подписка активна — карта не показывается и марки не ставятся.</p>
+<ul>
+  <li>Каждое посещение без подписки → кнопка <strong>🌿 +1 марка за посещение</strong></li>
+  <li><strong>10 марок</strong> = бесплатный кальян за 350 RSD</li>
+  <li>При накоплении 10 марок → кнопка <strong>«Погасить — кальян за 350 RSD»</strong></li>
+  <li>После погашения счётчик сбрасывается в 0, история сохраняется</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>Управление подписками <span class="badge">только Администратор</span></h2>
+<p>Открыть через <strong>Список гостей → Карточка гостя</strong>.</p>
+
+<h3>Активировать подписку</h3>
+<table>
+  <tr><th>Название</th><th>Кальянов</th></tr>
+  <tr><td>Добро пожаловать</td><td>8</td></tr>
+  <tr><td>Тебе как всегда?</td><td>14</td></tr>
+  <tr><td>Ну рассказывай</td><td>20</td></tr>
+  <tr><td>Да ты легенда!</td><td>26</td></tr>
+</table>
+<blockquote>При активации новой подписки предыдущая закрывается автоматически.</blockquote>
+
+<h3>Отменить подписку</h3>
+<p>Кнопка <strong>«Отменить»</strong> → все остатки (кальяны, фруктовые и пр.) <strong>сгорают</strong>. Гость возвращается к системе марок лояльности.</p>
+
+<h3>Заморозить подписку</h3>
+<p>Кнопка <strong>«Заморозить»</strong> → указать количество дней. Размораживается автоматически по истечении срока.</p>
+
+<h3>Сменить план</h3>
+<p>Кнопка <strong>«Сменить план»</strong> → выбрать новый уровень. Остатки меняются на остатки нового плана.</p>
+
+<h3>Ручная корректировка</h3>
+<p>Прямое изменение числа кальянов в карточке гостя. Используй для исправления ошибочных списаний — в логе запишется «Корректировка».</p>
+</div>
+
+<div class="section no-break">
+<h2>Статистика</h2>
+<p>Главная страница Админ-панели показывает:</p>
+<ul>
+  <li><strong>Всего гостей</strong> и <strong>активных подписок</strong> прямо сейчас</li>
+  <li><strong>Списания за всё время</strong> — суммарно по каждому типу</li>
+  <li><strong>По уровням подписок</strong> — активные и все когда-либо проданные</li>
+  <li><strong>Последние 7 операций</strong> — с именами гостей и сотрудников</li>
+</ul>
+</div>
+
+<div class="section no-break">
+<h2>Выгрузка отчётности <span class="badge">только Администратор</span></h2>
+<p>Кнопка <strong>«Выгрузить отчётность»</strong> на главной → открывается HTML-страница:</p>
+<ul>
+  <li><strong>Сводка</strong> — кальяны, активации, марки и т.д. за всё время</li>
+  <li><strong>Полная таблица</strong> — каждая операция с датой, гостем, сотрудником</li>
+</ul>
+<p><strong>Сохранить как PDF:</strong> нажать кнопку «Сохранить / Распечатать» → «Сохранить PDF».</p>
+</div>
+
+<div class="section no-break">
+<h2>Частые ситуации</h2>
+
+<p><strong>Случайно списали лишнее.</strong><br>
+→ Карточка гостя → Ручная корректировка → прибавить нужное количество обратно.</p>
+
+<p><strong>Гость хочет поменять тариф.</strong><br>
+→ Карточка гостя → «Сменить план».</p>
+
+<p><strong>Гость хочет приостановить подписку на время поездки.</strong><br>
+→ Карточка гостя → «Заморозить» → указать количество дней.</p>
+
+<p><strong>Гость потерял Telegram-аккаунт.</strong><br>
+→ При восстановлении Telegram все данные вернутся — они привязаны к Telegram ID.</p>
+
+<p><strong>Бот не отвечает на /start.</strong><br>
+→ Написать администратору — возможно, сервер обновляется.</p>
+</div>
+
+</body>
+</html>
