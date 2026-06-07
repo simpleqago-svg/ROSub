@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "wzfskl8Uo6vCZgDq3Hcca"
+uri = "file://STAFF_GUIDE.md"
+type = "text"
+title = "Rodina Club — Гайдлайн для персонала"
