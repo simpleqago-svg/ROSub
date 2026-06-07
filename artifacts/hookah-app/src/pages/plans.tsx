@@ -115,7 +115,7 @@ export default function PlansPage() {
           </div>
           <div className="flex-1 text-left">
             <p className="text-sm font-medium text-foreground">Как это работает?</p>
-            <p className="text-xs text-muted-foreground">Всё о подписке Rodina Club</p>
+            <p className="text-xs text-muted-foreground">Всё о подписке RodinaSub</p>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </button>

@@ -7,12 +7,12 @@ type FaqItem = { q: string; a: string | ReactNode };
 
 const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
   {
-    title: "Что такое Rodina Club?",
+    title: "Что такое RodinaSub?",
     emoji: "🪄",
     items: [
       {
         q: "Как работает подписка?",
-        a: "Rodina Club — это пакет кальянов на 30 дней по выгодной цене. Ты платишь один раз и просто приходишь: мы списываем кальян с твоего баланса. Никаких лишних слов.",
+        a: "RodinaSub — это пакет кальянов на 30 дней по выгодной цене. Ты платишь один раз и просто приходишь: мы списываем кальян с твоего баланса. Никаких лишних слов.",
       },
       {
         q: "Как воспользоваться подпиской?",
@@ -29,7 +29,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
     emoji: "📋",
     items: [
       {
-        q: "BASE — 15 900 RSD",
+        q: "Добро пожаловать / DOBRODOSLI! — 15 900 RSD",
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
@@ -43,7 +43,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         ),
       },
       {
-        q: "STANDARD — 22 900 RSD",
+        q: "Тебе как всегда? / GDE SI KOMSIJA? — 22 900 RSD",
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
@@ -58,7 +58,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         ),
       },
       {
-        q: "PREMIUM — 29 500 RSD",
+        q: "Ну рассказывай / SAMO RECI — 29 300 RSD",
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
@@ -73,7 +73,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         ),
       },
       {
-        q: "ELITE — 35 500 RSD",
+        q: "Да ты легенда! / SVE ZA TEBE — 35 300 RSD",
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
@@ -100,7 +100,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
       },
       {
         q: "Что такое электронная чаша?",
-        a: "Электронная чаша доступна только в тарифе ELITE. Это 1 визит с электронной чашей за всю подписку — и он не тратит кальян из твоего лимита.",
+        a: "Электронная чаша доступна только в тарифе «Да ты легенда!». Это 1 визит с электронной чашей за всю подписку — и он не тратит кальян из твоего лимита.",
       },
       {
         q: "Что такое кальян за 350 RSD?",
@@ -185,7 +185,7 @@ export default function FaqPage() {
       <div className="bg-card border-b border-border px-4 py-4">
         <BackButton onClick={() => setLocation("/profile")} />
         <h1 className="text-xl font-bold text-foreground">Как это работает</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Всё о подписке Rodina Club</p>
+        <p className="text-sm text-muted-foreground mt-0.5">Всё о подписке RodinaSub</p>
       </div>
 
       <div className="px-4 pt-4 space-y-5">
