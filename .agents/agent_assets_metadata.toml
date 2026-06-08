@@ -6,3 +6,9 @@ id = "wzfskl8Uo6vCZgDq3Hcca"
 uri = "file://STAFF_GUIDE.md"
 type = "text"
 title = "Rodina Club — Гайдлайн для персонала"
+
+[[outputs]]
+id = "SdBumjINkzZ3PLPFEs_Iz"
+uri = "file://rodinasubbot-qr.png"
+type = "image"
+title = "QR-код @rodinasubbot"
