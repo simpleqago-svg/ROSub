@@ -1,14 +1,20 @@
-import { useAdminGetUsers } from "@workspace/api-client-react";
+import { useAdminGetUsers, useAdminDeleteUser } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, Search, Trash2 } from "lucide-react";
 import BackButton from "@/components/back-button";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { getAdminGetUsersQueryKey, getAdminGetStatsQueryKey } from "@workspace/api-client-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function AdminUsersPage() {
   const [, setLocation] = useLocation();
   const { data: users, isLoading } = useAdminGetUsers();
   const [search, setSearch] = useState("");
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const deleteMutation = useAdminDeleteUser();
 
   const filtered = users?.filter((u) => {
     const q = search.toLowerCase();
@@ -20,6 +26,18 @@ export default function AdminUsersPage() {
     );
   });
 
+  const handleDelete = (userId: number) => {
+    deleteMutation.mutate({ userId }, {
+      onSuccess: () => {
+        toast({ title: "Гость удалён" });
+        setConfirmId(null);
+        queryClient.invalidateQueries({ queryKey: getAdminGetUsersQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getAdminGetStatsQueryKey() });
+      },
+      onError: () => toast({ title: "Ошибка удаления", variant: "destructive" }),
+    });
+  };
+
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-card border-b border-border px-4 py-4">
@@ -27,7 +45,6 @@ export default function AdminUsersPage() {
         <h1 className="text-xl font-bold text-foreground">Гости клуба</h1>
       </div>
 
-      {/* Search */}
       <div className="px-4 pt-3 pb-1">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -53,44 +70,73 @@ export default function AdminUsersPage() {
           </div>
         ) : (
           filtered?.map((user) => (
-            <button
-              key={user.id}
-              data-testid={`button-user-${user.id}`}
-              onClick={() => setLocation(`/admin/users/${user.id}`)}
-              className="w-full bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 hover:bg-card/80 transition-colors text-left"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                <span className="font-bold text-primary text-sm">{user.firstName[0]}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground text-sm truncate">
-                  {user.firstName} {user.lastName ?? ""}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {user.username ? `@${user.username} · ` : ""}
-                  {user.subscription
-                    ? `${user.subscription.plan.nameRu} · ${user.subscription.hookahsRemaining} кал.`
-                    : "Нет подписки"}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {user.subscription?.isLegacy && (
-                  <span className="text-xs bg-orange-500/15 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full">
-                    Старые цены
-                  </span>
-                )}
-                {user.subscription ? (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                    Активна
-                  </span>
-                ) : (
-                  <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                    Нет
-                  </span>
-                )}
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </div>
-            </button>
+            <div key={user.id} className="relative">
+              <button
+                data-testid={`button-user-${user.id}`}
+                onClick={() => { if (confirmId === user.id) setConfirmId(null); else setLocation(`/admin/users/${user.id}`); }}
+                className="w-full bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 hover:bg-card/80 transition-colors text-left pr-12"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                  <span className="font-bold text-primary text-sm">{user.firstName[0]}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground text-sm truncate">
+                    {user.firstName} {user.lastName ?? ""}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.username ? `@${user.username} · ` : ""}
+                    {user.subscription
+                      ? `${user.subscription.plan.nameRu} · ${user.subscription.hookahsRemaining} кал.`
+                      : "Нет подписки"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {user.subscription?.isLegacy && (
+                    <span className="text-xs bg-orange-500/15 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full">
+                      Старые цены
+                    </span>
+                  )}
+                  {user.subscription ? (
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      Активна
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                      Нет
+                    </span>
+                  )}
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </button>
+
+              <button
+                onClick={(e) => { e.stopPropagation(); setConfirmId(confirmId === user.id ? null : user.id); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+
+              {confirmId === user.id && (
+                <div className="mt-1 bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                  <p className="text-sm text-red-300">Удалить гостя и все его данные?</p>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => setConfirmId(null)}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      disabled={deleteMutation.isPending}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                    >
+                      Удалить
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           ))
         )}
       </div>
