@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getAdminGetUsersQueryKey, getAdminGetStatsQueryKey } from "@workspace/api-client-react";
 import { toast } from "@/hooks/use-toast";
 
-export default function AdminUsersPage() {
+export default function AdminSubscriptionsPage() {
   const [, setLocation] = useLocation();
   const { data: users, isLoading } = useAdminGetUsers();
   const [search, setSearch] = useState("");
@@ -17,7 +17,9 @@ export default function AdminUsersPage() {
   const queryClient = useQueryClient();
   const deleteMutation = useAdminDeleteUser();
 
-  const filtered = users?.filter((u) => {
+  const active = (users ?? []).filter((u) => u.subscription);
+
+  const filtered = active.filter((u) => {
     const q = search.toLowerCase();
     return (
       u.firstName.toLowerCase().includes(q) ||
@@ -25,10 +27,7 @@ export default function AdminUsersPage() {
       (u.username ?? "").toLowerCase().includes(q) ||
       String(u.id).includes(q)
     );
-  }) ?? [];
-
-  const withSub = filtered.filter((u) => u.subscription);
-  const withoutSub = filtered.filter((u) => !u.subscription);
+  });
 
   const handleDelete = (userId: number) => {
     deleteMutation.mutate({ userId }, {
@@ -45,7 +44,6 @@ export default function AdminUsersPage() {
   const renderCard = (user: AdminUserView) => (
     <div key={user.id} className="relative">
       <button
-        data-testid={`button-user-${user.id}`}
         onClick={() => { if (confirmId === user.id) setConfirmId(null); else setLocation(`/admin/users/${user.id}`); }}
         className="w-full bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 hover:bg-card/80 transition-colors text-left pr-12"
       >
@@ -57,10 +55,8 @@ export default function AdminUsersPage() {
             {user.firstName} {user.lastName ?? ""}
           </p>
           <p className="text-xs text-muted-foreground truncate">
-            {user.username ? `@${user.username} · ` : ""}
-            {user.subscription
-              ? `${user.subscription.plan.nameRu} · ${user.subscription.hookahsRemaining} кал.`
-              : "Нет подписки"}
+            {user.subscription!.plan.nameRu} · {user.subscription!.hookahsRemaining} кал.
+            {user.username ? ` · @${user.username}` : ""}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -69,11 +65,7 @@ export default function AdminUsersPage() {
               Старые цены
             </span>
           )}
-          {user.subscription ? (
-            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Активна</span>
-          ) : (
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Нет</span>
-          )}
+          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Активна</span>
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </div>
       </button>
@@ -111,10 +103,10 @@ export default function AdminUsersPage() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-card border-b border-border px-4 py-4">
-        <BackButton data-testid="button-back-admin" onClick={() => setLocation("/admin")} />
-        <h1 className="text-xl font-bold text-foreground">Все гости</h1>
+        <BackButton onClick={() => setLocation("/admin")} />
+        <h1 className="text-xl font-bold text-foreground">Активные подписки</h1>
         <p className="text-sm text-muted-foreground">
-          {isLoading ? "Загрузка..." : `${filtered.length} гостей`}
+          {isLoading ? "Загрузка..." : `${active.length} гостей с подпиской`}
         </p>
       </div>
 
@@ -122,9 +114,8 @@ export default function AdminUsersPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
-            data-testid="input-search-users"
             type="search"
-            placeholder="Поиск по имени или @username..."
+            placeholder="Поиск..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-card border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
@@ -132,32 +123,18 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <div className="px-4 pt-2 space-y-4">
+      <div className="px-4 pt-2 space-y-2">
         {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => (
+          Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-16 w-full rounded-xl" />
           ))
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground text-sm">Гости не найдены</div>
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            <p className="text-4xl mb-3">📋</p>
+            <p>Активных подписок нет</p>
+          </div>
         ) : (
-          <>
-            {withSub.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">
-                  С подпиской — {withSub.length}
-                </p>
-                {withSub.map(renderCard)}
-              </div>
-            )}
-            {withoutSub.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">
-                  Без подписки — {withoutSub.length}
-                </p>
-                {withoutSub.map(renderCard)}
-              </div>
-            )}
-          </>
+          filtered.map(renderCard)
         )}
       </div>
     </div>

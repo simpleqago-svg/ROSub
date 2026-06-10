@@ -80,7 +80,7 @@ export default function AdminPage() {
               </button>
               <button
                 data-testid="button-stat-subs"
-                onClick={() => setLocation("/admin/users")}
+                onClick={() => setLocation("/admin/subscriptions")}
                 className="bg-card border border-primary/20 rounded-xl p-4 text-left hover:bg-card/80 transition-colors"
               >
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Активных подписок</p>
