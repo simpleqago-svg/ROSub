@@ -19,6 +19,7 @@ import {
   getAdminGetUsersQueryKey,
   getAdminGetStatsQueryKey,
   getAdminGetUserLogsQueryKey,
+  getAdminGetStaffQueryKey,
 } from "@workspace/api-client-react";
 import { useLocation, useParams } from "wouter";
 import BackButton from "@/components/back-button";
@@ -95,6 +96,7 @@ export default function AdminUserDetailPage() {
     queryClient.invalidateQueries({ queryKey: getAdminGetUsersQueryKey() });
     queryClient.invalidateQueries({ queryKey: getAdminGetStatsQueryKey() });
     queryClient.invalidateQueries({ queryKey: getAdminGetUserLogsQueryKey(userId) });
+    queryClient.invalidateQueries({ queryKey: getAdminGetStaffQueryKey() });
   };
 
   const handleSave = () => {
