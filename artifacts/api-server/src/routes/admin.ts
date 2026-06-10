@@ -535,19 +535,24 @@ router.patch("/admin/users/:userId/role", requireAuth, requireSuperAdmin, async 
   res.json({ id: user.id, telegramId: user.telegramId.toString(), firstName: user.firstName, lastName: user.lastName ?? null, username: user.username ?? null, role: user.role, note: user.note ?? null, createdAt: user.createdAt.toISOString(), subscription: null });
 });
 
+const LOYALTY_ACTIONS = ["loyalty_stamp", "loyalty_redeem"];
+
 router.get("/admin/users/:userId/logs", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const params = AdminGetUserLogsParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const allLogs = await getLogsWithNames();
-  const filtered = allLogs.filter((l) => l.guestId === params.data.userId).slice(0, 50);
+  const filtered = allLogs
+    .filter((l) => l.guestId === params.data.userId && !LOYALTY_ACTIONS.includes(l.action))
+    .slice(0, 50);
 
   res.json(AdminGetUserLogsResponse.parse(filtered));
 });
 
 router.get("/admin/logs", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const logs = await getLogsWithNames();
-  res.json(AdminGetLogsResponse.parse(logs.slice(0, 50)));
+  const filtered = logs.filter((l) => !LOYALTY_ACTIONS.includes(l.action));
+  res.json(AdminGetLogsResponse.parse(filtered.slice(0, 50)));
 });
 
 router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<void> => {
