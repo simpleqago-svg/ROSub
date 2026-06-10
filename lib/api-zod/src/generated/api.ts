@@ -139,6 +139,51 @@ export const GetMySubscriptionResponse = zod.object({
 
 
 /**
+ * @summary Get all staff and admins (admin)
+ */
+export const AdminGetStaffResponseItem = zod.object({
+  "id": zod.number(),
+  "telegramId": zod.number(),
+  "firstName": zod.string(),
+  "lastName": zod.string().nullish(),
+  "username": zod.string().nullish(),
+  "role": zod.string(),
+  "note": zod.string().nullish(),
+  "displayCode": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "loyaltyStamps": zod.number(),
+  "loyaltyTotalRedeemed": zod.number(),
+  "subscription": zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "planId": zod.number(),
+  "plan": zod.object({
+  "id": zod.number(),
+  "nameRu": zod.string(),
+  "nameRs": zod.string(),
+  "level": zod.number(),
+  "hookahCount": zod.number(),
+  "priceRsd": zod.number(),
+  "pricePerHookah": zod.number(),
+  "bonusHookahFruit": zod.number(),
+  "bonusElectric": zod.number(),
+  "bonusHookahCheap": zod.number()
+}),
+  "hookahsRemaining": zod.number(),
+  "fruitHookahsRemaining": zod.number(),
+  "electricAvailable": zod.boolean(),
+  "cheapHookahAvailable": zod.boolean(),
+  "activatedAt": zod.string(),
+  "expiresAt": zod.string().nullable(),
+  "frozenUntil": zod.string().nullish(),
+  "note": zod.string().nullish(),
+  "isLegacy": zod.boolean()
+}).optional()
+})
+export const AdminGetStaffResponse = zod.array(AdminGetStaffResponseItem)
+
+
+/**
  * @summary Get all users (admin)
  */
 export const AdminGetUsersResponseItem = zod.object({

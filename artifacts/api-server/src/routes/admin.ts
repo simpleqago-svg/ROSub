@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, subscriptionPlansTable, userSubscriptionsTable, actionLogsTable } from "@workspace/db";
-import { eq, and, count, sum, desc, aliasedTable } from "drizzle-orm";
+import { eq, and, count, sum, desc, aliasedTable, inArray } from "drizzle-orm";
 import { requireAuth, requireAdmin, requireSuperAdmin, getAuthedUser } from "../lib/auth";
 import {
   AdminGetUsersResponse,
@@ -99,6 +99,25 @@ function buildUserView(user: typeof usersTable.$inferSelect, row?: { user_subscr
     subscription: row && row.subscription_plans ? buildSubDetail(row.user_subscriptions, row.subscription_plans) : undefined,
   };
 }
+
+router.get("/admin/staff", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const staff = await db.select().from(usersTable)
+    .where(inArray(usersTable.role, ["staff", "admin"]))
+    .orderBy(usersTable.role, usersTable.createdAt);
+
+  const result = await Promise.all(
+    staff.map(async (user) => {
+      const rows = await db
+        .select()
+        .from(userSubscriptionsTable)
+        .leftJoin(subscriptionPlansTable, eq(userSubscriptionsTable.planId, subscriptionPlansTable.id))
+        .where(and(eq(userSubscriptionsTable.userId, user.id), eq(userSubscriptionsTable.active, true)));
+      return buildUserView(user, rows[0]);
+    })
+  );
+
+  res.json(AdminGetUsersResponse.parse(result));
+});
 
 router.get("/admin/users", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const users = await db.select().from(usersTable).orderBy(usersTable.createdAt);

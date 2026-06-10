@@ -2,7 +2,7 @@ import { useAdminGetStats, useAdminGetLogs, useAdminDeleteLog, useGetMe, getAdmi
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { QrCode, ChevronRight, Download, Trash2 } from "lucide-react";
+import { QrCode, ChevronRight, Download, Trash2, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -167,6 +167,20 @@ export default function AdminPage() {
           <Download className="w-4 h-4 text-muted-foreground" />
           <span className="flex-1 text-left">Выгрузить отчётность (CSV)</span>
         </button>
+
+        {/* Navigation actions */}
+        <div className="grid grid-cols-1 gap-2">
+          <button
+            onClick={() => setLocation("/admin/staff")}
+            className="w-full bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 hover:bg-card/80 transition-colors"
+          >
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <Users className="w-4 h-4 text-blue-400" />
+            </div>
+            <span className="flex-1 text-left text-sm font-medium text-foreground">Персонал</span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
 
         {/* Single action: QR scan */}
         <button

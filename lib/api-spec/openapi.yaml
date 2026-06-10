@@ -120,6 +120,23 @@ paths:
         "404":
           description: No active subscription
 
+  /admin/staff:
+    get:
+      operationId: adminGetStaff
+      tags: [admin]
+      summary: Get all staff and admins (admin)
+      responses:
+        "200":
+          description: List of staff/admin users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUserView"
+        "403":
+          description: Forbidden
+
   /admin/users:
     get:
       operationId: adminGetUsers

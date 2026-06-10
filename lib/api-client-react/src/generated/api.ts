@@ -503,6 +503,83 @@ export function useGetMySubscription<TData = Awaited<ReturnType<typeof getMySubs
 
 
 
+export const getAdminGetStaffUrl = () => {
+
+
+
+
+  return `/api/admin/staff`
+}
+
+/**
+ * @summary Get all staff and admins (admin)
+ */
+export const adminGetStaff = async ( options?: RequestInit): Promise<AdminUserView[]> => {
+
+  return customFetch<AdminUserView[]>(getAdminGetStaffUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdminGetStaffQueryKey = () => {
+    return [
+    `/api/admin/staff`
+    ] as const;
+    }
+
+
+export const getAdminGetStaffQueryOptions = <TData = Awaited<ReturnType<typeof adminGetStaff>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetStaff>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminGetStaffQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetStaff>>> = ({ signal }) => adminGetStaff({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminGetStaff>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AdminGetStaffQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetStaff>>>
+export type AdminGetStaffQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get all staff and admins (admin)
+ */
+
+export function useAdminGetStaff<TData = Awaited<ReturnType<typeof adminGetStaff>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof adminGetStaff>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAdminGetStaffQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getAdminGetUsersUrl = () => {
 
 
