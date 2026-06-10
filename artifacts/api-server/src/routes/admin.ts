@@ -120,7 +120,9 @@ router.get("/admin/staff", requireAuth, requireAdmin, async (req, res): Promise<
 });
 
 router.get("/admin/users", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const users = await db.select().from(usersTable).orderBy(usersTable.createdAt);
+  const users = await db.select().from(usersTable)
+    .where(eq(usersTable.role, "user"))
+    .orderBy(usersTable.createdAt);
 
   const result = await Promise.all(
     users.map(async (user) => {
