@@ -30,7 +30,6 @@ export default function AdminUsersPage() {
   }) ?? [];
 
   const withSub = filtered.filter((u) => u.subscription);
-  const withoutSub = filtered.filter((u) => !u.subscription);
 
   const handleDelete = (userId: number) => {
     deleteMutation.mutate({ userId }, {
@@ -136,29 +135,17 @@ export default function AdminUsersPage() {
           Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-16 w-full rounded-xl" />
           ))
-        ) : filtered.length === 0 ? (
+        ) : withSub.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground text-sm">
-            Гости не найдены
+            Гостей с активной подпиской нет
           </div>
         ) : (
-          <>
-            {withSub.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">
-                  С подпиской — {withSub.length}
-                </p>
-                {withSub.map(renderCard)}
-              </div>
-            )}
-            {withoutSub.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">
-                  Без подписки — {withoutSub.length}
-                </p>
-                {withoutSub.map(renderCard)}
-              </div>
-            )}
-          </>
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">
+              Активных подписок — {withSub.length}
+            </p>
+            {withSub.map(renderCard)}
+          </div>
         )}
       </div>
     </div>
