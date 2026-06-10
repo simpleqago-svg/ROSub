@@ -161,7 +161,7 @@ function toast({ ...props }: Toast) {
     },
   })
 
-  setTimeout(() => dismiss(), 3000)
+  setTimeout(() => dismiss(), 1000)
 
   return {
     id: id,
