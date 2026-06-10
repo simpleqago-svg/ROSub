@@ -552,8 +552,16 @@ router.get("/admin/logs", requireAuth, requireAdmin, async (req, res): Promise<v
 
 router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const [totalUsersRow] = await db.select({ count: count() }).from(usersTable).where(eq(usersTable.role, "user"));
-  const [activeSubsRow] = await db.select({ count: count() }).from(userSubscriptionsTable).where(eq(userSubscriptionsTable.active, true));
-  const [legacyRow] = await db.select({ count: count() }).from(userSubscriptionsTable).where(and(eq(userSubscriptionsTable.isLegacy, true), eq(userSubscriptionsTable.active, true)));
+  const [activeSubsRow] = await db
+    .select({ count: count() })
+    .from(userSubscriptionsTable)
+    .innerJoin(usersTable, eq(userSubscriptionsTable.userId, usersTable.id))
+    .where(and(eq(userSubscriptionsTable.active, true), eq(usersTable.role, "user")));
+  const [legacyRow] = await db
+    .select({ count: count() })
+    .from(userSubscriptionsTable)
+    .innerJoin(usersTable, eq(userSubscriptionsTable.userId, usersTable.id))
+    .where(and(eq(userSubscriptionsTable.isLegacy, true), eq(userSubscriptionsTable.active, true), eq(usersTable.role, "user")));
 
   // All-time counts from action_logs (never deleted)
   const actionCounts = await db
@@ -569,11 +577,13 @@ router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<
       const [activeRow] = await db
         .select({ count: count() })
         .from(userSubscriptionsTable)
-        .where(and(eq(userSubscriptionsTable.planId, plan.id), eq(userSubscriptionsTable.active, true)));
+        .innerJoin(usersTable, eq(userSubscriptionsTable.userId, usersTable.id))
+        .where(and(eq(userSubscriptionsTable.planId, plan.id), eq(userSubscriptionsTable.active, true), eq(usersTable.role, "user")));
       const [totalRow] = await db
         .select({ count: count() })
         .from(userSubscriptionsTable)
-        .where(eq(userSubscriptionsTable.planId, plan.id));
+        .innerJoin(usersTable, eq(userSubscriptionsTable.userId, usersTable.id))
+        .where(and(eq(userSubscriptionsTable.planId, plan.id), eq(usersTable.role, "user")));
       return { planName: plan.nameRu, activeCount: activeRow.count, totalEver: totalRow.count };
     })
   );
