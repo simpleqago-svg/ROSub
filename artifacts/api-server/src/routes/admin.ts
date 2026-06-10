@@ -551,7 +551,7 @@ router.get("/admin/logs", requireAuth, requireAdmin, async (req, res): Promise<v
 });
 
 router.get("/admin/stats", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const [totalUsersRow] = await db.select({ count: count() }).from(usersTable);
+  const [totalUsersRow] = await db.select({ count: count() }).from(usersTable).where(eq(usersTable.role, "user"));
   const [activeSubsRow] = await db.select({ count: count() }).from(userSubscriptionsTable).where(eq(userSubscriptionsTable.active, true));
   const [legacyRow] = await db.select({ count: count() }).from(userSubscriptionsTable).where(and(eq(userSubscriptionsTable.isLegacy, true), eq(userSubscriptionsTable.active, true)));
 
