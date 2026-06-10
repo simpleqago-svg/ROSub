@@ -598,16 +598,6 @@ router.post("/admin/users/:userId/loyalty/stamp", requireAuth, requireAdmin, asy
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, params.data.userId));
   if (!user) { res.status(404).json({ error: "User not found" }); return; }
 
-  // Block stamps for guests with an active subscription
-  const [activeSub] = await db
-    .select({ id: userSubscriptionsTable.id })
-    .from(userSubscriptionsTable)
-    .where(and(eq(userSubscriptionsTable.userId, params.data.userId), eq(userSubscriptionsTable.active, true)));
-  if (activeSub) {
-    res.status(400).json({ error: "У гостя активная подписка — марки лояльности не ставим" });
-    return;
-  }
-
   const newStamps = Math.min(user.loyaltyStamps + 1, 10);
   const [updated] = await db
     .update(usersTable)

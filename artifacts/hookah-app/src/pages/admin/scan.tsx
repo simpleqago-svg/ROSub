@@ -261,8 +261,8 @@ export default function AdminScanPage() {
               </div>
             )}
 
-            {/* Loyalty stamp — only for guests WITHOUT an active subscription */}
-            {guestData && !sub && (() => {
+            {/* Loyalty stamp */}
+            {guestData && (() => {
               const stamps = guestData.loyaltyStamps ?? 0;
               const ready = stamps >= 10;
               return (
