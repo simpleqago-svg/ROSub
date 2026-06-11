@@ -389,7 +389,9 @@ export const AdminUpdateSubscriptionBody = zod.object({
   "fruitHookahsRemaining": zod.number().nullish(),
   "electricAvailable": zod.boolean().nullish(),
   "cheapHookahAvailable": zod.boolean().nullish(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "activatedAt": zod.coerce.date().nullish(),
+  "expiresAt": zod.coerce.date().nullish()
 })
 
 export const AdminUpdateSubscriptionResponse = zod.object({

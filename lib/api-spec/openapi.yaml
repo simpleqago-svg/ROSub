@@ -770,6 +770,12 @@ components:
           type: ["boolean", "null"]
         note:
           type: ["string", "null"]
+        activatedAt:
+          type: ["string", "null"]
+          format: date-time
+        expiresAt:
+          type: ["string", "null"]
+          format: date-time
 
     UpdateUserRoleInput:
       type: object

@@ -17,4 +17,8 @@ export interface SubscriptionUsageUpdate {
   cheapHookahAvailable?: boolean | null;
   /** @nullable */
   note?: string | null;
+  /** @nullable */
+  activatedAt?: Date | null;
+  /** @nullable */
+  expiresAt?: Date | null;
 }

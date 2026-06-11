@@ -74,12 +74,17 @@ export default function AdminUserDetailPage() {
   const [electricAvailable, setElectricAvailable] = useState(false);
   const [cheapAvailable, setCheapAvailable] = useState(false);
   const [note, setNote] = useState("");
+  const [activatedAtStr, setActivatedAtStr] = useState("");
+  const [expiresAtStr, setExpiresAtStr] = useState("");
   const [selectedPlanId, setSelectedPlanId] = useState<number | "">("");
   const [activateMode, setActivateMode] = useState(false);
   const [isLegacy, setIsLegacy] = useState(false);
   const [superAdminAction, setSuperAdminAction] = useState<"changePlan" | "freeze" | "cancel" | null>(null);
   const [freezeDays, setFreezeDays] = useState(3);
   const [newPlanId, setNewPlanId] = useState<number | "">("");
+
+  const toDateInput = (iso: string | null | undefined) =>
+    iso ? iso.slice(0, 10) : "";
 
   const openEdit = () => {
     if (!user?.subscription) return;
@@ -88,6 +93,8 @@ export default function AdminUserDetailPage() {
     setElectricAvailable(user.subscription.electricAvailable);
     setCheapAvailable(user.subscription.cheapHookahAvailable);
     setNote(user.subscription.note ?? "");
+    setActivatedAtStr(toDateInput(user.subscription.activatedAt));
+    setExpiresAtStr(toDateInput(user.subscription.expiresAt));
     setEditMode(true);
   };
 
@@ -109,6 +116,8 @@ export default function AdminUserDetailPage() {
           electricAvailable,
           cheapHookahAvailable: cheapAvailable,
           note: note || null,
+          activatedAt: activatedAtStr ? new Date(activatedAtStr).toISOString() : undefined,
+          expiresAt: expiresAtStr ? new Date(expiresAtStr).toISOString() : undefined,
         },
       },
       {
@@ -399,6 +408,27 @@ export default function AdminUserDetailPage() {
                     />
                     <span className="text-foreground">350 RSD кальян</span>
                   </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground">Начало подписки</label>
+                    <input
+                      type="date"
+                      value={activatedAtStr}
+                      onChange={(e) => setActivatedAtStr(e.target.value)}
+                      className="w-full mt-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Конец подписки</label>
+                    <input
+                      type="date"
+                      value={expiresAtStr}
+                      onChange={(e) => setExpiresAtStr(e.target.value)}
+                      className="w-full mt-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
                 </div>
 
                 <div>

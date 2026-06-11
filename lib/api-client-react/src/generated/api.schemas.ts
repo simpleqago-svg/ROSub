@@ -121,6 +121,10 @@ export interface SubscriptionUsageUpdate {
   cheapHookahAvailable?: boolean | null;
   /** @nullable */
   note?: string | null;
+  /** @nullable */
+  activatedAt?: string | null;
+  /** @nullable */
+  expiresAt?: string | null;
 }
 
 export type UpdateUserRoleInputRole = typeof UpdateUserRoleInputRole[keyof typeof UpdateUserRoleInputRole];

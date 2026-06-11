@@ -244,6 +244,8 @@ router.patch("/admin/users/:userId/subscription", requireAuth, requireSuperAdmin
   if (body.data.electricAvailable != null) updateData.electricAvailable = body.data.electricAvailable;
   if (body.data.cheapHookahAvailable != null) updateData.cheapHookahAvailable = body.data.cheapHookahAvailable;
   if (body.data.note !== undefined) updateData.note = body.data.note;
+  if (body.data.activatedAt !== undefined) updateData.activatedAt = body.data.activatedAt ? new Date(body.data.activatedAt) : new Date();
+  if (body.data.expiresAt !== undefined) updateData.expiresAt = body.data.expiresAt ? new Date(body.data.expiresAt) : null;
 
   const [updated] = await db
     .update(userSubscriptionsTable)
