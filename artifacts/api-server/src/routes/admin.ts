@@ -399,21 +399,19 @@ router.post("/admin/users/:userId/use-hookah", requireAuth, requireAdmin, async 
   if (sub.hookahsRemaining <= 0) { res.status(400).json({ error: "No hookahs remaining" }); return; }
 
   const newRemaining = sub.hookahsRemaining - 1;
-  const unlockCheap = newRemaining === 0 && plan.bonusHookahCheap > 0;
 
   const [updated] = await db
     .update(userSubscriptionsTable)
     .set({
       hookahsRemaining: newRemaining,
       totalHookahsUsed: sub.totalHookahsUsed + 1,
-      ...(unlockCheap ? { cheapHookahAvailable: true } : {}),
     })
     .where(eq(userSubscriptionsTable.id, sub.id))
     .returning();
 
   const staff = getAuthedUser(req);
   const staffName = `${staff.firstName}${staff.lastName ? " " + staff.lastName : ""}`;
-  await logAction(staff.id, staffName, params.data.userId, "hookah", `Кальян списан. Осталось: ${updated.hookahsRemaining}${unlockCheap ? ". Открыт кальян за 350 RSD!" : ""}`);
+  await logAction(staff.id, staffName, params.data.userId, "hookah", `Кальян списан. Осталось: ${updated.hookahsRemaining}`);
 
   res.json(buildSubDetail(updated, plan));
 });
@@ -439,7 +437,6 @@ router.post("/admin/users/:userId/use-fruit", requireAuth, requireAdmin, async (
 
   const newFruitRemaining = sub.fruitHookahsRemaining - 1;
   const newHookahsRemaining = sub.hookahsRemaining - 1;
-  const unlockCheap = newHookahsRemaining === 0 && plan.bonusHookahCheap > 0;
 
   const [updated] = await db
     .update(userSubscriptionsTable)
@@ -447,7 +444,6 @@ router.post("/admin/users/:userId/use-fruit", requireAuth, requireAdmin, async (
       fruitHookahsRemaining: newFruitRemaining,
       hookahsRemaining: newHookahsRemaining,
       totalHookahsUsed: sub.totalHookahsUsed + 1,
-      ...(unlockCheap ? { cheapHookahAvailable: true } : {}),
     })
     .where(eq(userSubscriptionsTable.id, sub.id))
     .returning();

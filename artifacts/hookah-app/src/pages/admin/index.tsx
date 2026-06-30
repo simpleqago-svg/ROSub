@@ -9,7 +9,6 @@ import { useQueryClient } from "@tanstack/react-query";
 const ACTION_LABELS: Record<string, string> = {
   hookah: "🌿 Кальян",
   fruit: "🍉 Фрукт",
-  cheap: "💰 350 RSD",
   electric: "⚡ Эл. чаша",
   activate: "✅ Активация",
   manual_adjust: "✏️ Корректировка",
@@ -108,10 +107,6 @@ export default function AdminPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">🍉 Фруктовых</span>
                   <span className="text-sm font-bold text-foreground">{stats.totalFruitUsed}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">💰 350 RSD</span>
-                  <span className="text-sm font-bold text-foreground">{stats.totalCheapUsed}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">⚡ Эл. чаш</span>

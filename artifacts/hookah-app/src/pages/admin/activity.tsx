@@ -6,7 +6,6 @@ import BackButton from "@/components/back-button";
 const ACTION_LABELS: Record<string, string> = {
   hookah: "🌿 Кальян",
   fruit: "🍉 Фрукт",
-  cheap: "💰 350 RSD кальян",
   electric: "⚡ Электронная чаша",
   activate: "✅ Активация подписки",
   manual_adjust: "✏️ Корректировка",

@@ -4,7 +4,6 @@ import {
   useAdminUpdateSubscription,
   useAdminUseHookah,
   useAdminUseFruit,
-  useAdminUseCheap,
   useAdminUseElectric,
   useAdminGetUserLogs,
   useAdminUpdateUserRole,
@@ -32,7 +31,6 @@ import { Save, Plus, Lock } from "lucide-react";
 const ACTION_LABELS: Record<string, string> = {
   hookah: "🌿 Кальян",
   fruit: "🍉 Фрукт",
-  cheap: "💰 350 RSD кальян",
   electric: "⚡ Электронная чаша",
   activate: "✅ Активация подписки",
   manual_adjust: "✏️ Ручная корректировка",
@@ -60,7 +58,6 @@ export default function AdminUserDetailPage() {
   const updateRoleMutation = useAdminUpdateUserRole();
   const useHookahMutation = useAdminUseHookah();
   const useFruitMutation = useAdminUseFruit();
-  const useCheapMutation = useAdminUseCheap();
   const useElectricMutation = useAdminUseElectric();
   const addStampMutation = useAdminAddLoyaltyStamp();
   const redeemLoyaltyMutation = useAdminRedeemLoyalty();
@@ -72,7 +69,6 @@ export default function AdminUserDetailPage() {
   const [hookahsRemaining, setHookahsRemaining] = useState<number | "">("");
   const [fruitRemaining, setFruitRemaining] = useState<number | "">("");
   const [electricAvailable, setElectricAvailable] = useState(false);
-  const [cheapAvailable, setCheapAvailable] = useState(false);
   const [note, setNote] = useState("");
   const [activatedAtStr, setActivatedAtStr] = useState("");
   const [expiresAtStr, setExpiresAtStr] = useState("");
@@ -91,7 +87,6 @@ export default function AdminUserDetailPage() {
     setHookahsRemaining(user.subscription.hookahsRemaining);
     setFruitRemaining(user.subscription.fruitHookahsRemaining);
     setElectricAvailable(user.subscription.electricAvailable);
-    setCheapAvailable(user.subscription.cheapHookahAvailable);
     setNote(user.subscription.note ?? "");
     setActivatedAtStr(toDateInput(user.subscription.activatedAt));
     setExpiresAtStr(toDateInput(user.subscription.expiresAt));
@@ -114,7 +109,6 @@ export default function AdminUserDetailPage() {
           hookahsRemaining: hookahsRemaining === "" ? undefined : hookahsRemaining,
           fruitHookahsRemaining: fruitRemaining === "" ? undefined : fruitRemaining,
           electricAvailable,
-          cheapHookahAvailable: cheapAvailable,
           note: note || null,
           activatedAt: activatedAtStr ? new Date(activatedAtStr).toISOString() : undefined,
           expiresAt: expiresAtStr ? new Date(expiresAtStr).toISOString() : undefined,
@@ -171,7 +165,7 @@ export default function AdminUserDetailPage() {
     );
   };
 
-  const isPending = useHookahMutation.isPending || useFruitMutation.isPending || useCheapMutation.isPending || useElectricMutation.isPending;
+  const isPending = useHookahMutation.isPending || useFruitMutation.isPending || useElectricMutation.isPending;
 
   if (isLoading) {
     return (
@@ -398,17 +392,7 @@ export default function AdminUserDetailPage() {
                     />
                     <span className="text-foreground">Электронная чаша</span>
                   </label>
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input
-                      data-testid="checkbox-cheap"
-                      type="checkbox"
-                      checked={cheapAvailable}
-                      onChange={(e) => setCheapAvailable(e.target.checked)}
-                      className="accent-primary"
-                    />
-                    <span className="text-foreground">350 RSD кальян</span>
-                  </label>
-                </div>
+                  </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -474,19 +458,6 @@ export default function AdminUserDetailPage() {
                     <p className="text-xs text-muted-foreground">Фруктовых</p>
                     <p className="font-bold text-foreground">{sub.fruitHookahsRemaining} / {sub.plan.bonusHookahFruit}</p>
                   </div>
-                  <div className={`bg-background rounded-lg px-3 py-2 ${sub.cheapHookahAvailable ? "border border-primary/20" : ""}`}>
-                    <p className="text-xs text-muted-foreground">350 RSD кальян</p>
-                    {!sub.cheapHookahAvailable && sub.hookahsRemaining > 0 ? (
-                      <div className="flex items-center gap-1">
-                        <Lock className="w-3 h-3 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">В конце подписки</p>
-                      </div>
-                    ) : (
-                      <p className={`font-bold ${sub.cheapHookahAvailable ? "text-primary" : "text-muted-foreground"}`}>
-                        {sub.cheapHookahAvailable ? "Доступен" : "Использован"}
-                      </p>
-                    )}
-                  </div>
                   <div className={`bg-background rounded-lg px-3 py-2 ${sub.electricAvailable ? "border border-primary/20" : ""}`}>
                     <p className="text-xs text-muted-foreground">Электронная чаша</p>
                     <p className={`font-bold ${sub.electricAvailable ? "text-primary" : "text-muted-foreground"}`}>
@@ -527,24 +498,14 @@ export default function AdminUserDetailPage() {
                       {sub.fruitHookahsRemaining <= 0 ? " (нет)" : ` (ост. ${sub.fruitHookahsRemaining})`}
                     </button>
                   )}
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      data-testid="button-use-cheap"
-                      onClick={() => doAction(useCheapMutation, "350 RSD кальян списан")}
-                      disabled={isPending || !sub.cheapHookahAvailable}
-                      className="bg-secondary text-secondary-foreground rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
-                    >
-                      💰 350 RSD
-                    </button>
-                    <button
-                      data-testid="button-use-electric"
-                      onClick={() => doAction(useElectricMutation, "Электронная чаша списана")}
-                      disabled={isPending || !sub.electricAvailable}
-                      className="bg-secondary text-secondary-foreground rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
-                    >
-                      ⚡ Эл. чаша
-                    </button>
-                  </div>
+                  <button
+                    data-testid="button-use-electric"
+                    onClick={() => doAction(useElectricMutation, "Электронная чаша списана")}
+                    disabled={isPending || !sub.electricAvailable}
+                    className="w-full bg-secondary text-secondary-foreground rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
+                  >
+                    ⚡ Эл. чаша {sub.electricAvailable ? "" : "(использована)"}
+                  </button>
                 </div>
 
                 {/* Super-admin subscription management */}

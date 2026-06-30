@@ -79,19 +79,15 @@ export default function PlansPage() {
                     <p className="text-base font-semibold text-white">до {plan.bonusHookahFruit} шт <span className="text-xs font-normal text-white/50">(входят в общее количество)</span></p>
                   </div>
                 )}
-                <div className="pt-0.5">
-                  <p className="text-xs text-white/50 mb-1.5">После окончания подписки</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs bg-white/10 text-white/80 px-2.5 py-1 rounded-full">
-                      Кальян за 350 RSD
-                    </span>
-                    {plan.bonusElectric > 0 && (
+                {plan.bonusElectric > 0 && (
+                  <div className="pt-0.5">
+                    <div className="flex flex-wrap gap-2">
                       <span className="text-xs bg-yellow-400/20 text-yellow-300 px-2.5 py-1 rounded-full">
-                        Электронная чаша
+                        ⚡ Электронная чаша
                       </span>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           ))

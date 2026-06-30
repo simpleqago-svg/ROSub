@@ -39,9 +39,9 @@ function LoyaltyCard({ stamps, totalRedeemed }: { stamps: number; totalRedeemed:
         ))}
       </div>
       {ready ? (
-        <p className="text-xs text-primary font-medium text-center">Покажи персоналу — получи кальян за 350 RSD</p>
+        <p className="text-xs text-primary font-medium text-center">Готово! Покажи карту персоналу 🎉</p>
       ) : (
-        <p className="text-xs text-muted-foreground text-center">1 кальян = 1 марка · 10 марок = кальян за 350 RSD</p>
+        <p className="text-xs text-muted-foreground text-center">1 кальян = 1 марка · собери 10</p>
       )}
     </div>
   );
@@ -276,19 +276,11 @@ export default function DashboardPage() {
             </div>
 
             {/* Boolean bonuses */}
-            <div className="grid grid-cols-2 gap-3">
-              <BoolCard
-                label="Кальян за 350 RSD"
-                available={sub.cheapHookahAvailable && sub.hookahsRemaining === 0}
-                locked={sub.hookahsRemaining > 0}
-                lockedHint="Откроется в конце"
-              />
-              <BoolCard
-                label="Электронная чаша"
-                available={sub.electricAvailable}
-                unavailableHint="Доступна в последнем уровне подписки"
-              />
-            </div>
+            <BoolCard
+              label="Электронная чаша"
+              available={sub.electricAvailable}
+              unavailableHint="Доступна в последнем уровне подписки"
+            />
 
             {/* Staff note */}
             {sub.note && (

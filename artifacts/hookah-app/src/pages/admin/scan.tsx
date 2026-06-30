@@ -1,7 +1,6 @@
 import {
   useAdminUseHookah,
   useAdminUseFruit,
-  useAdminUseCheap,
   useAdminUseElectric,
   useAdminGetUserByCode,
   getAdminGetUserByCodeQueryKey,
@@ -16,7 +15,6 @@ import { useRef, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { Html5Qrcode } from "html5-qrcode";
-import { Lock } from "lucide-react";
 
 type ScannedState = { code: string } | null;
 
@@ -30,7 +28,6 @@ export default function AdminScanPage() {
 
   const useHookahMutation = useAdminUseHookah();
   const useFruitMutation = useAdminUseFruit();
-  const useCheapMutation = useAdminUseCheap();
   const useElectricMutation = useAdminUseElectric();
   const addStampMutation = useAdminAddLoyaltyStamp();
   const redeemLoyaltyMutation = useAdminRedeemLoyalty();
@@ -118,10 +115,8 @@ export default function AdminScanPage() {
   };
 
   const sub = guestData?.subscription;
-  const isPending = useHookahMutation.isPending || useFruitMutation.isPending || useCheapMutation.isPending || useElectricMutation.isPending;
+  const isPending = useHookahMutation.isPending || useFruitMutation.isPending || useElectricMutation.isPending;
   const loyaltyPending = addStampMutation.isPending || redeemLoyaltyMutation.isPending;
-  const cheapLocked = sub ? sub.hookahsRemaining > 0 : false;
-  const cheapAvailableDisplay = sub ? (sub.cheapHookahAvailable && sub.hookahsRemaining === 0) : false;
 
   return (
     <div className="min-h-screen pb-24">
@@ -190,19 +185,6 @@ export default function AdminScanPage() {
                       <p className="font-bold">{sub.fruitHookahsRemaining} / {sub.plan.bonusHookahFruit}</p>
                     </div>
                   )}
-                  <div className={`bg-background rounded-lg px-3 py-2 ${cheapAvailableDisplay ? "border border-primary/20" : ""}`}>
-                    <p className="text-xs text-muted-foreground">350 RSD кальян</p>
-                    {cheapLocked ? (
-                      <div className="flex items-center gap-1">
-                        <Lock className="w-3 h-3 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">В конце</p>
-                      </div>
-                    ) : (
-                      <p className={`font-bold text-sm ${cheapAvailableDisplay ? "text-primary" : "text-muted-foreground"}`}>
-                        {cheapAvailableDisplay ? "Доступен" : "Использован"}
-                      </p>
-                    )}
-                  </div>
                   <div className={`bg-background rounded-lg px-3 py-2 ${sub.electricAvailable ? "border border-primary/20" : ""}`}>
                     <p className="text-xs text-muted-foreground">Эл. чаша</p>
                     <p className={`font-bold text-sm ${sub.electricAvailable ? "text-primary" : "text-muted-foreground"}`}>
@@ -240,24 +222,14 @@ export default function AdminScanPage() {
                     {sub.fruitHookahsRemaining <= 0 ? " (нет)" : ` (ост. ${sub.fruitHookahsRemaining})`}
                   </button>
                 )}
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    data-testid="button-use-cheap"
-                    onClick={() => doAction(useCheapMutation, "350 RSD кальян списан")}
-                    disabled={isPending || !cheapAvailableDisplay}
-                    className="bg-secondary text-secondary-foreground rounded-xl py-3 font-semibold disabled:opacity-40"
-                  >
-                    💰 350 RSD
-                  </button>
-                  <button
-                    data-testid="button-use-electric"
-                    onClick={() => doAction(useElectricMutation, "Эл. чаша списана")}
-                    disabled={isPending || !sub.electricAvailable}
-                    className="bg-secondary text-secondary-foreground rounded-xl py-3 font-semibold disabled:opacity-40"
-                  >
-                    ⚡ Эл. чаша
-                  </button>
-                </div>
+                <button
+                  data-testid="button-use-electric"
+                  onClick={() => doAction(useElectricMutation, "Эл. чаша списана")}
+                  disabled={isPending || !sub.electricAvailable}
+                  className="w-full bg-secondary text-secondary-foreground rounded-xl py-3 font-semibold disabled:opacity-40"
+                >
+                  ⚡ Эл. чаша {sub.electricAvailable ? "" : "(использована)"}
+                </button>
               </div>
             )}
 
@@ -306,7 +278,7 @@ export default function AdminScanPage() {
                       disabled={loyaltyPending}
                       className="w-full bg-primary text-primary-foreground rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40"
                     >
-                      {redeemLoyaltyMutation.isPending ? "Погашаем..." : "🎉 Погасить — кальян за 350 RSD"}
+                      {redeemLoyaltyMutation.isPending ? "Погашаем..." : "🎉 Погасить карту"}
                     </button>
                   ) : (
                     <button

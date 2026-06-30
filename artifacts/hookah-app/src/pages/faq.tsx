@@ -33,11 +33,7 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
-              <li>🌿 8 кальянов</li>
-            </ul>
-            <p className="text-xs text-muted-foreground pt-1">После окончания подписки</p>
-            <ul className="space-y-1">
-              <li>💰 Кальян за 350 RSD</li>
+              <li>🌿 9 кальянов</li>
             </ul>
           </div>
         ),
@@ -47,12 +43,8 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
-              <li>🌿 12 кальянов</li>
+              <li>🌿 13 кальянов</li>
               <li>🍉 1 кальян на фруктовой чаше (входит в общий счёт)</li>
-            </ul>
-            <p className="text-xs text-muted-foreground pt-1">После окончания подписки</p>
-            <ul className="space-y-1">
-              <li>💰 Кальян за 350 RSD</li>
             </ul>
           </div>
         ),
@@ -62,12 +54,8 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
-              <li>🌿 16 кальянов</li>
+              <li>🌿 17 кальянов</li>
               <li>🍉 До 4 кальянов на фруктовой чаше (входят в общий счёт)</li>
-            </ul>
-            <p className="text-xs text-muted-foreground pt-1">После окончания подписки</p>
-            <ul className="space-y-1">
-              <li>💰 Кальян за 350 RSD</li>
             </ul>
           </div>
         ),
@@ -77,13 +65,9 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
         a: (
           <div className="space-y-2 text-sm text-foreground/80">
             <ul className="space-y-1">
-              <li>🌿 20 кальянов</li>
+              <li>🌿 21 кальян</li>
               <li>🍉 До 4 кальянов на фруктовой чаше (входят в общий счёт)</li>
               <li>⚡ 1 кальян на электронной чаше (не списывается из лимита)</li>
-            </ul>
-            <p className="text-xs text-muted-foreground pt-1">После окончания подписки</p>
-            <ul className="space-y-1">
-              <li>💰 Кальян за 350 RSD</li>
             </ul>
           </div>
         ),
@@ -101,10 +85,6 @@ const SECTIONS: { title: string; emoji: string; items: FaqItem[] }[] = [
       {
         q: "Что такое электронная чаша?",
         a: "Электронная чаша доступна только в тарифе «Да ты легенда!». Это 1 визит с электронной чашей за всю подписку — и он не тратит кальян из твоего лимита.",
-      },
-      {
-        q: "Что такое кальян за 350 RSD?",
-        a: "После того как подписка закончится (вышли кальяны или прошло 30 дней), ты получаешь право на 1 кальян за 350 RSD. Действует 7 дней. Только 1 раз. Скажи сотруднику — он проверит.",
       },
     ],
   },

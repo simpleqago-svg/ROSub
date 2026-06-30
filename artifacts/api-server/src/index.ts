@@ -19,10 +19,10 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 const PLANS = [
-  { level: 1, nameRu: "Добро пожаловать", nameRs: "DOBRODOSLI!", hookahCount: 8,  priceRsd: 16250, pricePerHookah: 1805, bonusHookahFruit: 0, bonusElectric: 0, bonusHookahCheap: 1 },
-  { level: 2, nameRu: "Тебе как всегда?", nameRs: "GDE SI KOMSIJA?", hookahCount: 12, priceRsd: 22850, pricePerHookah: 1757, bonusHookahFruit: 1, bonusElectric: 0, bonusHookahCheap: 1 },
-  { level: 3, nameRu: "Ну рассказывай",   nameRs: "SAMO RECI",       hookahCount: 16, priceRsd: 29250, pricePerHookah: 1720, bonusHookahFruit: 4, bonusElectric: 0, bonusHookahCheap: 1 },
-  { level: 4, nameRu: "Да ты легенда!",   nameRs: "SVE ZA TEBE",     hookahCount: 20, priceRsd: 35250, pricePerHookah: 1678, bonusHookahFruit: 4, bonusElectric: 1, bonusHookahCheap: 1 },
+  { level: 1, nameRu: "Добро пожаловать", nameRs: "DOBRODOSLI!", hookahCount: 9,  priceRsd: 16250, pricePerHookah: 1805, bonusHookahFruit: 0, bonusElectric: 0, bonusHookahCheap: 0 },
+  { level: 2, nameRu: "Тебе как всегда?", nameRs: "GDE SI KOMSIJA?", hookahCount: 13, priceRsd: 22850, pricePerHookah: 1757, bonusHookahFruit: 1, bonusElectric: 0, bonusHookahCheap: 0 },
+  { level: 3, nameRu: "Ну рассказывай",   nameRs: "SAMO RECI",       hookahCount: 17, priceRsd: 29250, pricePerHookah: 1720, bonusHookahFruit: 4, bonusElectric: 0, bonusHookahCheap: 0 },
+  { level: 4, nameRu: "Да ты легенда!",   nameRs: "SVE ZA TEBE",     hookahCount: 21, priceRsd: 35250, pricePerHookah: 1678, bonusHookahFruit: 4, bonusElectric: 1, bonusHookahCheap: 0 },
 ];
 
 async function seedPlans() {
